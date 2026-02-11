@@ -1,25 +1,29 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Start seeding...');
-  
-  // Tambahkan seed data disini nanti
-  // Contoh:
-  // const user = await prisma.user.create({
-  //   data: {
-  //     email: 'admin@example.com',
-  //     name: 'Admin User',
-  //   },
-  // });
-  
-  console.log('✅ Seeding completed');
+  const passwordHash = await bcrypt.hash("admin123", 10);
+
+  await prisma.users.upsert({
+    where: { username: "admin" },
+    update: {},
+    create: {
+      employee_id: "EMP001",
+      username: "admin",
+      name: "Administrator",
+      role: "admin",
+      password_hash: passwordHash,
+    },
+  });
+
+  console.log("1 akun admin dibuat");
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
