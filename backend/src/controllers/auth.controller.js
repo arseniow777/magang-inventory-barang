@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
+import { createAuditLog } from "../utils/audit.js";
 
 export const login = async (req, res, next) => {
   try {
@@ -28,6 +29,16 @@ export const login = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );
+
+    await createAuditLog({
+      actor_id: user.id,
+      actor_role: user.role,
+      action: "LOGIN",
+      entity_type: "Users",
+      entity_id: user.id,
+      description: `${user.username} login ke sistem`,
+      user_agent: req.headers["user-agent"],
+    });
 
     return sendSuccess(res, "Login berhasil", {
       token,
@@ -66,6 +77,24 @@ export const getMe = async (req, res, next) => {
     }
 
     return sendSuccess(res, "Data user berhasil diambil", user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    await createAuditLog({
+      actor_id: req.user.id,
+      actor_role: req.user.role,
+      action: "LOGOUT",
+      entity_type: "Users",
+      entity_id: req.user.id,
+      description: `${req.user.username} logout dari sistem`,
+      user_agent: req.headers["user-agent"],
+    });
+
+    return sendSuccess(res, "Logout berhasil");
   } catch (err) {
     next(err);
   }

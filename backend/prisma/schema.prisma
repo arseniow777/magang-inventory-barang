@@ -40,10 +40,23 @@ enum ItemCondition {
 }
 
 enum ItemStatus {
+  available
   borrowed
   transferred
   sold
   demolished
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  LOGIN
+  LOGOUT
+  ARCHIVE
+  RESET_PASSWORD_REQUEST
 }
 
 // --- MODELS ---
@@ -60,56 +73,76 @@ model Users {
   telegram_id     String?
   created_at      DateTime          @default(now())
 
-  // Relations - Harus merujuk ke nama model yang baru (jamak)
-  requests_as_pic   Requests[]       @relation("PICRequests")
-  requests_as_admin Requests[]       @relation("AdminApprovals")
-  reports_issued    OfficialReports[]
-  notifications     Notifications[]
-  password_resets   PasswordResets[]
-  logs_moved        ItemLogHistory[]
+  requests_as_pic     Requests[]       @relation("PICRequests")
+  requests_as_admin   Requests[]       @relation("AdminApprovals")
+  requests_as_returner Requests[]      @relation("UserReturns")
+  reports_issued      OfficialReports[]
+  notifications       Notifications[]
+  password_resets     PasswordResets[]
+  logs_moved          ItemLogHistory[]
+  audit_logs          AuditLogs[]
 }
 
 model Items {
   id                 Int               @id @default(autoincrement())
-  name               String
-  items_code         String            @unique
+  name               String            
+  model_code         String            @unique
   category           String
-  available_quantity Int
-  total_quantity     Int
   procurement_year   Int
-  condition          ItemCondition
-  status             ItemStatus
-  qr_code            String?
   created_at         DateTime          @default(now())
 
-  location_id        Int
-  location           Locations         @relation(fields: [location_id], references: [id])
 
   photos             ItemPhotos[]
-  request_items      RequestItems[]
-  log_histories      ItemLogHistory[]
+  units              ItemUnits[]      
+}
+
+model ItemUnits {
+  id            Int           @id @default(autoincrement())
+  unit_code     String        @unique
+  condition     ItemCondition @default(good)
+  status        ItemStatus    @default(available)
+  
+  item_id       Int
+  item          Items         @relation(fields: [item_id], references: [id], onDelete: Cascade)
+
+  location_id   Int
+  location      Locations     @relation(fields: [location_id], references: [id])
+
+  request_items RequestItems[]
+  log_histories ItemLogHistory[]
 }
 
 model Locations {
   id              Int               @id @default(autoincrement())
   location_code   String            @unique
   building_name   String
-  floor           String
+  floor           Int
   address         String            @db.Text
 
-  items           Items[]
-  logs_from       ItemLogHistory[]  @relation("FromLocation")
-  logs_to         ItemLogHistory[]  @relation("ToLocation")
+  item_units              ItemUnits[]
+  requests_destination    Requests[]         @relation("RequestDestination")
+  requests_return         Requests[]         @relation("RequestReturn")
+  logs_from               ItemLogHistory[]   @relation("FromLocation")
+  logs_to                 ItemLogHistory[]   @relation("ToLocation")
 }
 
 model Requests {
-  id            Int            @id @default(autoincrement())
-  request_code  String         @unique
-  request_type  ReportType
-  reason        String         @db.Text
-  status        RequestStatus  @default(pending)
-  approved_at   DateTime?
-  created_at    DateTime       @default(now())
+  id                      Int            @id @default(autoincrement())
+  request_code            String         @unique
+  request_type            ReportType
+  reason                  String         @db.Text
+  status                  RequestStatus  @default(pending)
+  approved_at             DateTime?
+  created_at              DateTime       @default(now())
+
+  destination_location_id Int?
+  destination_location    Locations?     @relation("RequestDestination", fields: [destination_location_id], references: [id])
+
+  returned_at             DateTime?
+  return_location_id      Int?
+  return_location         Locations?     @relation("RequestReturn", fields: [return_location_id], references: [id])
+  returned_by_id          Int?
+  returned_by             Users?         @relation("UserReturns", fields: [returned_by_id], references: [id])
 
   pic_id        Int
   pic           Users          @relation("PICRequests", fields: [pic_id], references: [id])
@@ -122,15 +155,14 @@ model Requests {
   log_histories ItemLogHistory[]
 }
 
+
 model RequestItems {
   id          Int      @id @default(autoincrement())
-  quantity    Int
-
   request_id  Int
   request     Requests @relation(fields: [request_id], references: [id])
   
-  item_id     Int
-  item        Items    @relation(fields: [item_id], references: [id])
+  unit_id     Int      // BERUBAH: Dari item_id
+  unit        ItemUnits @relation(fields: [unit_id], references: [id])
 }
 
 model ItemPhotos {
@@ -161,8 +193,8 @@ model ItemLogHistory {
   id                Int      @id @default(autoincrement())
   moved_at          DateTime @default(now())
 
-  item_id           Int
-  item              Items    @relation(fields: [item_id], references: [id])
+  unit_id           Int      // BERUBAH: Dari item_id
+  unit              ItemUnits @relation(fields: [unit_id], references: [id])
 
   from_location_id  Int
   from_location     Locations @relation("FromLocation", fields: [from_location_id], references: [id])
@@ -193,4 +225,26 @@ model PasswordResets {
 
   user_id     Int
   user        Users     @relation(fields: [user_id], references: [id])
+}
+
+model AuditLogs {
+  id            Int          @id @default(autoincrement())
+  
+  // Aktor - Berelasi ke tabel Users
+  actor_id      Int
+  actor         Users        @relation(fields: [actor_id], references: [id])
+  actor_role    Role         // Menyimpan role saat kejadian (snapshot)
+  
+  // Aksi (Melakukan apa)
+  action        AuditAction
+  
+  // Entitas (Terhadap objek apa)
+  // entity_type diisi string nama model: 'Items', 'Requests', dsb.
+  entity_type   String       
+  entity_id     Int          
+  
+  // Metadata tambahan
+  description   String?      @db.Text
+  user_agent    String?      // Contoh: "Mozilla/5.0... (Chrome)"
+  created_at    DateTime     @default(now())
 }
