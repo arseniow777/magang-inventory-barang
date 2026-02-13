@@ -1,7 +1,8 @@
 import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/audit.js";
-import { generateRequestCode } from "../utils/smartCode.js";
+import { generateRequestCode, generateReportNumber } from "../utils/smartCode.js";
+import { generateOfficialReport } from "../utils/pdfGenerator.js";
 
 export const createRequest = async (req, res, next) => {
   try {
@@ -238,10 +239,14 @@ export const approveRequest = async (req, res, next) => {
     const request = await prisma.requests.findUnique({
       where: { id: parseInt(id) },
       include: {
+        pic: true,
         request_items: {
           include: {
             unit: {
-              include: { location: true }
+              include: { 
+                item: true,
+                location: true 
+              }
             }
           }
         },
@@ -311,6 +316,19 @@ export const approveRequest = async (req, res, next) => {
             }
           }
         }
+      }
+    });
+
+    const reportNumber = await generateReportNumber();
+    const pdfPath = await generateOfficialReport(updatedRequest, reportNumber);
+
+    await prisma.officialReports.create({
+      data: {
+        report_number: reportNumber,
+        report_type: request.request_type,
+        file_path: pdfPath,
+        request_id: request.id,
+        issued_by_id: req.user.id
       }
     });
 

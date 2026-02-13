@@ -59,7 +59,11 @@ enum AuditAction {
   RESET_PASSWORD_REQUEST
 }
 
-// --- MODELS ---
+enum PasswordResetStatus {
+  pending
+  approved
+  rejected
+}
 
 model Users {
   id              Int               @id @default(autoincrement())
@@ -73,14 +77,15 @@ model Users {
   telegram_id     String?
   created_at      DateTime          @default(now())
 
-  requests_as_pic     Requests[]       @relation("PICRequests")
-  requests_as_admin   Requests[]       @relation("AdminApprovals")
-  requests_as_returner Requests[]      @relation("UserReturns")
-  reports_issued      OfficialReports[]
-  notifications       Notifications[]
-  password_resets     PasswordResets[]
-  logs_moved          ItemLogHistory[]
-  audit_logs          AuditLogs[]
+  requests_as_pic         Requests[]         @relation("PICRequests")
+  requests_as_admin       Requests[]         @relation("AdminApprovals")
+  requests_as_returner    Requests[]         @relation("UserReturns")
+  reports_issued          OfficialReports[]
+  notifications           Notifications[]
+  password_resets         PasswordResets[]   @relation("UserPasswordResets")
+  password_resets_admin   PasswordResets[]   @relation("AdminPasswordResets")
+  logs_moved              ItemLogHistory[]
+  audit_logs              AuditLogs[]
 }
 
 model Items {
@@ -219,12 +224,19 @@ model Notifications {
   user        Users               @relation(fields: [user_id], references: [id])
 }
 
-model PasswordResets {
-  id          Int       @id @default(autoincrement())
-  created_at  DateTime  @default(now()) // Tambahan agar tahu kapan reset diminta
 
-  user_id     Int
-  user        Users     @relation(fields: [user_id], references: [id])
+model PasswordResets {
+  id                Int                   @id @default(autoincrement())
+  status            PasswordResetStatus   @default(pending)
+  new_password_hash String
+  created_at        DateTime              @default(now())
+  approved_at       DateTime?
+  
+  user_id           Int
+  user              Users                 @relation("UserPasswordResets", fields: [user_id], references: [id])
+  
+  admin_id          Int?
+  admin             Users?                @relation("AdminPasswordResets", fields: [admin_id], references: [id])
 }
 
 model AuditLogs {
