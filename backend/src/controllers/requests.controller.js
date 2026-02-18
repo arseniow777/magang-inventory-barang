@@ -132,6 +132,7 @@ export const createRequest = async (req, res, next) => {
           data: {
             user_id: admin.id,
             message: `${req.user.name} membuat request ${request_code} (${request_type})`,
+            type: 'request',
             status: 'pending'
           }
         })
@@ -343,7 +344,10 @@ export const approveRequest = async (req, res, next) => {
         report_type: request.request_type,
         file_path: pdfPath,
         request_id: request.id,
-        issued_by_id: req.user.id
+        issued_by_id: req.user.id,
+        is_approved: true,
+        approved_by_id: req.user.id,
+        approved_at: new Date()
       }
     });
 
@@ -359,16 +363,18 @@ export const approveRequest = async (req, res, next) => {
 
     await prisma.notifications.create({
       data: {
-        user_id: request.pic_id,
-        message: `Request ${request.request_code} telah disetujui`,
+        user_id: updatedRequest.pic_id,
+        message: `Request ${updatedRequest.request_code} telah disetujui. Berita acara dapat diunduh.`,
+        type: 'report',
         status: 'pending'
       }
     });
 
     if (updatedRequest.pic.telegram_id) {
+      const webUrl = process.env.WEB_URL || 'https://your-website.com';
       await sendTelegramMessage(
         updatedRequest.pic.telegram_id,
-        `✅ Request ${request.request_code} telah disetujui oleh admin`
+        `✅ Request ${updatedRequest.request_code} telah disetujui!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 Silakan unduh dokumen melalui website kami:\n${webUrl}/reports`
       );
     }
 
@@ -441,6 +447,7 @@ export const rejectRequest = async (req, res, next) => {
       data: {
         user_id: request.pic_id,
         message: `Request ${request.request_code} ditolak`,
+        type: 'request',
         status: 'pending'
       }
     });
@@ -569,6 +576,7 @@ export const returnRequest = async (req, res, next) => {
           data: {
             user_id: admin.id,
             message: `${req.user.name} mengembalikan barang dari request ${request.request_code}`,
+            type: 'request',
             status: 'pending'
           }
         })

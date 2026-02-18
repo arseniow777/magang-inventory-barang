@@ -9,6 +9,7 @@ import requestsRoutes from "./requests.routes.js";
 import reportsRoutes from "./reports.routes.js";
 import passwordResetsRoutes from './passwordResets.routes.js';
 import notificationsRoutes from './notifications.routes.js';
+import botRoutes from './bot.routes.js';
 import '../utils/telegramBot.js';
 
 const router = Router();
@@ -23,5 +24,6 @@ router.use("/requests", requestsRoutes);
 router.use("/reports", reportsRoutes);
 router.use("/password-resets", passwordResetsRoutes);
 router.use("/notifications", notificationsRoutes);
+router.use("/bot", botRoutes);
 
 export default router;
