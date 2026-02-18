@@ -5,7 +5,7 @@ export const generateModelCode = async (category, procurementYear) => {
   const yearStr = procurementYear.toString();
   const baseCode = `${categoryShort}${yearStr}`;
 
-  const lastItem = await prisma.items.findFirst({
+  const lastItem = await prisma.itemMasters.findFirst({
     where: {
       model_code: {
         startsWith: baseCode,
@@ -26,7 +26,7 @@ export const generateModelCode = async (category, procurementYear) => {
 };
 
 export const generateUnitCode = async (itemId) => {
-  const item = await prisma.items.findUnique({
+  const item = await prisma.itemMasters.findUnique({
     where: { id: itemId },
     select: { model_code: true },
   });
@@ -48,7 +48,7 @@ export const generateUnitCode = async (itemId) => {
 };
 
 export const generateMultipleUnitCodes = async (itemId, quantity) => {
-  const item = await prisma.items.findUnique({
+  const item = await prisma.itemMasters.findUnique({
     where: { id: itemId },
     select: { model_code: true },
   });

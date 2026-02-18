@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import bcrypt from "bcryptjs";
 import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
@@ -176,6 +177,53 @@ export const deleteUser = async (req, res, next) => {
     });
 
     return sendSuccess(res, "Akun berhasil dinonaktifkan");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const generateTelegramLink = async (req, res, next) => {
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: req.user.id }
+    });
+
+    if (user.telegram_id) {
+      return sendError(res, "Telegram sudah terhubung", 400);
+    }
+
+    const token = Buffer.from(`link:${user.id}`).toString('base64');
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'invetel_bot';
+    const telegramLink = `https://t.me/${botUsername}?start=${token}`;
+    // const telegramLink = `https://t.me/invetel_bot?start=${token}`;
+
+    return sendSuccess(res, "Link Telegram berhasil dibuat", {
+      telegram_link: telegramLink,
+      instructions: "Klik link untuk menghubungkan akun Telegram Anda"
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const disconnectTelegram = async (req, res, next) => {
+  try {
+    await prisma.users.update({
+      where: { id: req.user.id },
+      data: { telegram_id: null }
+    });
+
+    await createAuditLog({
+      actor_id: req.user.id,
+      actor_role: req.user.role,
+      action: "UPDATE",
+      entity_type: "Users",
+      entity_id: req.user.id,
+      description: `${req.user.username} memutus koneksi Telegram`,
+      user_agent: req.headers["user-agent"]
+    });
+
+    return sendSuccess(res, "Telegram berhasil diputus");
   } catch (err) {
     next(err);
   }

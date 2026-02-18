@@ -14,10 +14,12 @@ import { uploadItemPhotos } from "../utils/upload.js";
 
 const router = Router();
 
-router.use(verifyToken);
 
 router.get("/", getItems);
 router.get("/:id", getItemById);
+
+router.use(verifyToken);
+
 router.post("/", checkRole("admin"), uploadItemPhotos, createItem);
 router.post("/:id/restock", checkRole("admin"), restockItem);
 router.put("/:id", checkRole("admin"), updateItem);

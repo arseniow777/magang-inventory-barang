@@ -8,6 +8,7 @@ import auditLogsRoutes from './auditLogs.routes.js';
 import requestsRoutes from "./requests.routes.js";
 import reportsRoutes from "./reports.routes.js";
 import passwordResetsRoutes from './passwordResets.routes.js';
+import notificationsRoutes from './notifications.routes.js';
 import '../utils/telegramBot.js';
 
 const router = Router();
@@ -21,5 +22,6 @@ router.use('/audit-logs', auditLogsRoutes);
 router.use("/requests", requestsRoutes);
 router.use("/reports", reportsRoutes);
 router.use("/password-resets", passwordResetsRoutes);
+router.use("/notifications", notificationsRoutes);
 
 export default router;

@@ -80,7 +80,8 @@ model Users {
   requests_as_pic         Requests[]         @relation("PICRequests")
   requests_as_admin       Requests[]         @relation("AdminApprovals")
   requests_as_returner    Requests[]         @relation("UserReturns")
-  reports_issued          OfficialReports[]
+  reports_issued          OfficialReports[]  @relation("ReportIssuer")
+  reports_approved        OfficialReports[]  @relation("ReportApprover")
   notifications           Notifications[]
   password_resets         PasswordResets[]   @relation("UserPasswordResets")
   password_resets_admin   PasswordResets[]   @relation("AdminPasswordResets")
@@ -88,7 +89,7 @@ model Users {
   audit_logs              AuditLogs[]
 }
 
-model Items {
+model ItemMasters {
   id                 Int               @id @default(autoincrement())
   name               String            
   model_code         String            @unique
@@ -108,7 +109,7 @@ model ItemUnits {
   status        ItemStatus    @default(available)
   
   item_id       Int
-  item          Items         @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  item          ItemMasters         @relation(fields: [item_id], references: [id], onDelete: Cascade)
 
   location_id   Int
   location      Locations     @relation(fields: [location_id], references: [id])
@@ -176,7 +177,7 @@ model ItemPhotos {
   uploaded_at DateTime @default(now())
 
   item_id     Int
-  item        Items    @relation(fields: [item_id], references: [id])
+  item        ItemMasters    @relation(fields: [item_id], references: [id])
 }
 
 model OfficialReports {
@@ -186,12 +187,17 @@ model OfficialReports {
   issued_date   DateTime @default(now())
   file_path     String
   created_at    DateTime @default(now())
+  
+  is_approved   Boolean  @default(false)
+  approved_by_id Int?
+  approved_by   Users?   @relation("ReportApprover", fields: [approved_by_id], references: [id])
+  approved_at   DateTime?
 
   request_id    Int      @unique
   request       Requests @relation(fields: [request_id], references: [id])
   
   issued_by_id  Int
-  issued_by     Users    @relation(fields: [issued_by_id], references: [id])
+  issued_by     Users    @relation("ReportIssuer", fields: [issued_by_id], references: [id])
 }
 
 model ItemLogHistory {

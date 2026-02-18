@@ -27,7 +27,7 @@ export const createItem = async (req, res, next) => {
 
    const model_code = await generateModelCode(category, parseInt(procurement_year));
    
-   const item = await prisma.items.create({
+   const item = await prisma.itemMasters.create({
         data: {
             name,
             model_code,
@@ -63,7 +63,7 @@ export const createItem = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
-    const itemWithDetails = await prisma.items.findUnique({
+    const itemWithDetails = await prisma.itemMasters.findUnique({
       where: { id: item.id },
       include: { 
         photos: true,
@@ -88,7 +88,7 @@ export const restockItem = async (req, res, next) => {
       return sendError(res, "Quantity dan location_id wajib diisi", 400);
     }
 
-    const item = await prisma.items.findUnique({ where: { id: parseInt(id) } });
+    const item = await prisma.itemMasters.findUnique({ where: { id: parseInt(id) } });
 
     if (!item) {
       return sendError(res, "Item tidak ditemukan", 404);
@@ -121,7 +121,7 @@ export const restockItem = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
-    const itemWithDetails = await prisma.items.findUnique({
+    const itemWithDetails = await prisma.itemMasters.findUnique({
       where: { id: item.id },
       include: { 
         photos: true,
@@ -150,7 +150,7 @@ export const getItems = async (req, res, next) => {
       ];
     }
 
-    const items = await prisma.items.findMany({
+    const items = await prisma.itemMasters.findMany({
       where,
       include: { 
         photos: true,
@@ -200,7 +200,7 @@ export const getItemById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const item = await prisma.items.findUnique({
+    const item = await prisma.itemMasters.findUnique({
       where: { id: parseInt(id) },
       include: { 
         photos: true,
@@ -225,7 +225,7 @@ export const updateItem = async (req, res, next) => {
     const { id } = req.params;
     const { name, category } = req.body;
 
-    const existing = await prisma.items.findUnique({ where: { id: parseInt(id) } });
+    const existing = await prisma.itemMasters.findUnique({ where: { id: parseInt(id) } });
 
     if (!existing) {
       return sendError(res, "Item tidak ditemukan", 404);
@@ -235,7 +235,7 @@ export const updateItem = async (req, res, next) => {
     if (name) updateData.name = name;
     if (category) updateData.category = category;
 
-    const item = await prisma.items.update({
+    const item = await prisma.itemMasters.update({
       where: { id: parseInt(id) },
       data: updateData,
       include: { photos: true, units: true },
@@ -261,7 +261,7 @@ export const addItemPhoto = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const item = await prisma.items.findUnique({
+    const item = await prisma.itemMasters.findUnique({
       where: { id: parseInt(id) },
       include: { photos: true },
     });
@@ -288,7 +288,7 @@ export const addItemPhoto = async (req, res, next) => {
 
     await prisma.itemPhotos.createMany({ data: photoData });
 
-    const updatedItem = await prisma.items.findUnique({
+    const updatedItem = await prisma.itemMasters.findUnique({
       where: { id: parseInt(id) },
       include: { photos: true },
     });

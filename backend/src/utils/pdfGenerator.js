@@ -23,48 +23,68 @@ export const generateOfficialReport = async (request, reportNumber) => {
       doc.pipe(stream);
 
       const typeMap = {
-        borrow: "BORROWING",
+        borrow: "PEMINJAMAN",
         transfer: "TRANSFER",
-        sell: "SALE",
-        demolish: "DEMOLITION"
+        sell: "PENJUALAN",
+        demolish: "PEMUSNAHAN"
       };
 
-      doc.fontSize(16).font("Helvetica-Bold").text("OFFICIAL HANDOVER REPORT", { align: "center" });
-      doc.fontSize(12).font("Helvetica").text(`Number: ${reportNumber}`, { align: "center" });
-      doc.moveDown(2);
+      // Header
+      doc.fontSize(14).font("Helvetica-Bold").text("BERITA ACARA SERAH TERIMA BARANG INVENTARIS", { align: "center" });
+      doc.fontSize(11).font("Helvetica").text(`Nomor: ${reportNumber}`, { align: "center" });
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      // Pembuka
+      const approvedDate = new Date(request.approved_at);
+      const dateStr = approvedDate.toLocaleDateString("id-ID", {
+        weekday: "long", year: "numeric", month: "long", day: "numeric"
+      });
 
       doc.fontSize(11).font("Helvetica").text(
-        `On this day, ${new Date(request.approved_at).toLocaleDateString("en-US", { 
-          weekday: "long", year: "numeric", month: "long", day: "numeric" 
-        })}, an inventory handover has been conducted with the following details:`,
+        `Pada hari ini, ${dateStr}, yang bertanda tangan di bawah ini telah melaksanakan serah terima barang inventaris milik perusahaan. Berita acara ini dibuat sebagai bukti sah pelaksanaan ${typeMap[request.request_type].toLowerCase()} barang sesuai dengan ketentuan yang berlaku.`,
         { align: "justify" }
       );
+      doc.moveDown(1.5);
+
+      // I. Data Pemohon
+      doc.fontSize(11).font("Helvetica-Bold").text("I.  DATA PEMOHON");
+      doc.moveDown(0.3);
+      doc.fontSize(10).font("Helvetica");
+      doc.text(`Nama Lengkap`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${request.pic.name}`);
+      doc.text(`NIP / ID Karyawan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${request.pic.employee_id}`);
+      doc.text(`Jabatan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${request.pic.role.toUpperCase()}`);
       doc.moveDown(1);
 
-      doc.fontSize(12).font("Helvetica-Bold").text("I. APPLICANT DATA");
+      // II. Informasi Permohonan
+      doc.fontSize(11).font("Helvetica-Bold").text("II.  INFORMASI PERMOHONAN");
+      doc.moveDown(0.3);
       doc.fontSize(10).font("Helvetica");
-      doc.text(`Name: ${request.pic.name}`);
-      doc.text(`Employee ID: ${request.pic.employee_id}`);
-      doc.text(`Role: ${request.pic.role.toUpperCase()}`);
-      doc.moveDown(1);
-
-      doc.fontSize(12).font("Helvetica-Bold").text("II. REQUEST INFORMATION");
-      doc.fontSize(10).font("Helvetica");
-      doc.text(`Type: ${typeMap[request.request_type]}`);
-      doc.text(`Request Number: ${request.request_code}`);
-      doc.text(`Request Date: ${new Date(request.created_at).toLocaleDateString("en-US")}`);
-      doc.text(`Approval Date: ${new Date(request.approved_at).toLocaleDateString("en-US")}`);
+      doc.text(`Jenis Permohonan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${typeMap[request.request_type]}`);
+      doc.text(`Nomor Permohonan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${request.request_code}`);
+      doc.text(`Tanggal Permohonan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${new Date(request.created_at).toLocaleDateString("id-ID")}`);
+      doc.text(`Tanggal Persetujuan`, 60, doc.y, { continued: true, width: 150 });
+      doc.text(`: ${new Date(request.approved_at).toLocaleDateString("id-ID")}`);
       if (request.destination_location) {
-        doc.text(`Destination: ${request.destination_location.building_name} - Floor ${request.destination_location.floor}`);
+        doc.text(`Lokasi Tujuan`, 60, doc.y, { continued: true, width: 150 });
+        doc.text(`: ${request.destination_location.building_name} - Lantai ${request.destination_location.floor}`);
       }
       doc.moveDown(1);
 
-      doc.fontSize(12).font("Helvetica-Bold").text("III. ITEM DETAILS");
+      // III. Daftar Barang
+      doc.fontSize(11).font("Helvetica-Bold").text("III.  DAFTAR BARANG YANG DISERAHTERIMAKAN");
       doc.moveDown(0.5);
 
       const tableTop = doc.y;
-      const colWidths = [30, 120, 80, 100, 60, 80];
-      const headers = ["No", "Item Name", "Model Code", "Unit Code", "Condition", "Origin Location"];
+      const colWidths = [30, 130, 80, 100, 60, 90];
+      const headers = ["No.", "Nama Barang", "Kode Model", "Kode Unit", "Kondisi", "Lokasi Asal"];
 
       doc.fontSize(9).font("Helvetica-Bold");
       let xPos = 50;
@@ -91,7 +111,7 @@ export const generateOfficialReport = async (request, reportNumber) => {
           item.unit.item.model_code,
           item.unit.unit_code,
           item.unit.condition,
-          `${item.unit.location.building_name} Fl.${item.unit.location.floor}`
+          `${item.unit.location.building_name} Lt.${item.unit.location.floor}`
         ];
 
         rowData.forEach((data, i) => {
@@ -103,25 +123,29 @@ export const generateOfficialReport = async (request, reportNumber) => {
       });
 
       doc.moveTo(50, yPos).lineTo(550, yPos).stroke();
-      yPos += 15;
-
-      doc.fontSize(12).font("Helvetica-Bold").text("IV. NOTES", 50, yPos);
       yPos += 20;
-      doc.fontSize(10).font("Helvetica").text(`Reason: ${request.reason}`, 50, yPos, { align: "justify" });
+
+      // IV. Keterangan
+      doc.fontSize(11).font("Helvetica-Bold").text("IV.  KETERANGAN", 50, yPos);
+      yPos += 18;
+      doc.fontSize(10).font("Helvetica").text(`Alasan/Keperluan: ${request.reason}`, 50, yPos, { align: "justify", width: 500 });
       yPos += 40;
 
+      // Penutup
       doc.fontSize(10).font("Helvetica").text(
-        "This official report is made to be used as necessary.",
-        50,
-        yPos,
-        { align: "justify" }
+        "Demikian berita acara ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya. Apabila di kemudian hari terdapat kekeliruan dalam berita acara ini, akan dilakukan perbaikan sebagaimana mestinya.",
+        50, yPos, { align: "justify", width: 500 }
       );
-      yPos += 40;
+      yPos += 50;
 
-      doc.fontSize(10).font("Helvetica-Bold").text("Approved by,", 400, yPos);
+      // Tanda Tangan
+      doc.fontSize(10).font("Helvetica").text("Mengetahui & Menyetujui,", 370, yPos);
+      doc.text("Pemohon,", 60, yPos);
       yPos += 60;
-      doc.fontSize(10).font("Helvetica-Bold").text(request.admin.name, 400, yPos);
-      doc.fontSize(9).font("Helvetica").text(`(${request.admin.role.toUpperCase()})`, 400, yPos + 15);
+      doc.font("Helvetica-Bold").text(request.pic.name, 60, yPos);
+      doc.fontSize(9).font("Helvetica").text(`(${request.pic.role.toUpperCase()})`, 60, yPos + 14);
+      doc.fontSize(10).font("Helvetica-Bold").text(request.admin.name, 370, yPos);
+      doc.fontSize(9).font("Helvetica").text(`(${request.admin.role.toUpperCase()})`, 370, yPos + 14);
 
       doc.end();
 

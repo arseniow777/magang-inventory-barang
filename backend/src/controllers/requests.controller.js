@@ -3,6 +3,7 @@ import { sendSuccess, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/audit.js";
 import { generateRequestCode, generateReportNumber } from "../utils/smartCode.js";
 import { generateOfficialReport } from "../utils/pdfGenerator.js";
+import { sendTelegramMessage } from "../utils/telegramBot.js";
 
 export const createRequest = async (req, res, next) => {
   try {
@@ -122,6 +123,20 @@ export const createRequest = async (req, res, next) => {
       description: `Request ${request.request_code} dibuat oleh ${req.user.username}`,
       user_agent: req.headers["user-agent"],
     });
+
+    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+
+    await Promise.all(
+      admins.map(admin =>
+        prisma.notifications.create({
+          data: {
+            user_id: admin.id,
+            message: `${req.user.name} membuat request ${request_code} (${request_type})`,
+            status: 'pending'
+          }
+        })
+      )
+    );
 
     return sendSuccess(res, "Request berhasil dibuat", request, 201);
   } catch (err) {
@@ -342,6 +357,21 @@ export const approveRequest = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
+    await prisma.notifications.create({
+      data: {
+        user_id: request.pic_id,
+        message: `Request ${request.request_code} telah disetujui`,
+        status: 'pending'
+      }
+    });
+
+    if (updatedRequest.pic.telegram_id) {
+      await sendTelegramMessage(
+        updatedRequest.pic.telegram_id,
+        `✅ Request ${request.request_code} telah disetujui oleh admin`
+      );
+    }
+
     return sendSuccess(res, "Request berhasil diapprove", updatedRequest);
   } catch (err) {
     next(err);
@@ -406,6 +436,21 @@ export const rejectRequest = async (req, res, next) => {
       description: `Request ${request.request_code} direject oleh ${req.user.username}`,
       user_agent: req.headers["user-agent"],
     });
+
+    await prisma.notifications.create({
+      data: {
+        user_id: request.pic_id,
+        message: `Request ${request.request_code} ditolak`,
+        status: 'pending'
+      }
+    });
+
+    if (updatedRequest.pic.telegram_id) {
+      await sendTelegramMessage(
+        updatedRequest.pic.telegram_id,
+        `❌ Request ${request.request_code} ditolak oleh admin`
+      );
+    }
 
     return sendSuccess(res, "Request berhasil direject", updatedRequest);
   } catch (err) {
@@ -515,6 +560,20 @@ export const returnRequest = async (req, res, next) => {
       description: `Request ${request.request_code} direturn oleh ${req.user.username}`,
       user_agent: req.headers["user-agent"],
     });
+
+    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+
+    await Promise.all(
+      admins.map(admin =>
+        prisma.notifications.create({
+          data: {
+            user_id: admin.id,
+            message: `${req.user.name} mengembalikan barang dari request ${request.request_code}`,
+            status: 'pending'
+          }
+        })
+      )
+    );
 
     return sendSuccess(res, "Barang berhasil direturn", updatedRequest);
   } catch (err) {
