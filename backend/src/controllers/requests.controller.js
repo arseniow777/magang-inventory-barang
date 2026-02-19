@@ -132,8 +132,7 @@ export const createRequest = async (req, res, next) => {
           data: {
             user_id: admin.id,
             message: `${req.user.name} membuat request ${request_code} (${request_type})`,
-            type: 'request',
-            status: 'pending'
+            type: 'request'
           }
         })
       )
@@ -365,8 +364,7 @@ export const approveRequest = async (req, res, next) => {
       data: {
         user_id: updatedRequest.pic_id,
         message: `Request ${updatedRequest.request_code} telah disetujui. Berita acara dapat diunduh.`,
-        type: 'report',
-        status: 'pending'
+        type: 'report'
       }
     });
 
@@ -447,8 +445,7 @@ export const rejectRequest = async (req, res, next) => {
       data: {
         user_id: request.pic_id,
         message: `Request ${request.request_code} ditolak`,
-        type: 'request',
-        status: 'pending'
+        type: 'request'
       }
     });
 
@@ -576,8 +573,7 @@ export const returnRequest = async (req, res, next) => {
           data: {
             user_id: admin.id,
             message: `${req.user.name} mengembalikan barang dari request ${request.request_code}`,
-            type: 'request',
-            status: 'pending'
+            type: 'request'
           }
         })
       )

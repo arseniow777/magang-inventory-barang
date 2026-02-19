@@ -155,8 +155,7 @@ export const approveReport = async (req, res, next) => {
     await prisma.notifications.create({
       data: {
         user_id: report.request.pic_id,
-        message: `Berita acara ${report.report_number} telah disetujui. Anda dapat mendownload sekarang.`,
-        status: 'pending'
+        message: `Berita acara ${report.report_number} telah disetujui. Anda dapat mendownload sekarang.`
       }
     });
 
@@ -207,8 +206,7 @@ export const rejectReport = async (req, res, next) => {
     await prisma.notifications.create({
       data: {
         user_id: report.request.pic_id,
-        message: `Berita acara ${report.report_number} ditolak. Silakan hubungi admin.`,
-        status: 'pending'
+        message: `Berita acara ${report.report_number} ditolak. Silakan hubungi admin.`
       }
     });
 
