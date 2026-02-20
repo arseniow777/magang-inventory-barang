@@ -36,6 +36,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   return (
     <SidebarMenu>
@@ -87,7 +88,7 @@ export function NavUser({
                 <IconUserCircle />
                 Profil akun
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notification") }>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notification")}>
                 <IconBell />
                 Notifikasi
               </DropdownMenuItem>
