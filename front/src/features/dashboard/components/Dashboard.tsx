@@ -20,6 +20,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../createbarang/pages/CreatePage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
+import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
 
 const placeholders: { [key: string]: string } = {
   "/dashboard": "Beranda",
@@ -28,6 +29,7 @@ const placeholders: { [key: string]: string } = {
   "/dashboard/reports": "Berita acara",
   "/dashboard/locations": "Lokasi",
   "/dashboard/users": "Pengguna",
+  "/dashboard/users/notification": "Notifikasi",
 };
 
 export default function Dashboard() {
@@ -102,6 +104,7 @@ export default function Dashboard() {
             <Route path="/" element={<BerandaPage />} />
             <Route path="/barang" element={<BarangPage />} />
             <Route path="/barang/create" element={<CreatePage />} />
+            <Route path="/users/notification" element={<NotificationsPage />} />
             <Route
               path="/*"
               element={

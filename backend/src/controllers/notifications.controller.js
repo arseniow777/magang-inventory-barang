@@ -5,6 +5,15 @@ export const getNotifications = async (req, res, next) => {
   try {
     const notifications = await prisma.notifications.findMany({
       where: { user_id: req.user.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+      },
       orderBy: { created_at: 'desc' }
     });
     return sendSuccess(res, "Data notifications berhasil diambil", notifications);
