@@ -8,14 +8,22 @@ import {
 } from "@/components/ui/table";
 import { useNotifications, useDeleteNotification } from "../hooks/useNotifications";
 import type { NotificationItem } from "../types/notification.types";
-import { IconTrash } from "@tabler/icons-react";
+// import { IconTrash } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
 
 function NotificationRow({ item }: { item: NotificationItem }) {
   const { mutate: deleteNotif } = useDeleteNotification();
+  const navigate = useNavigate();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     deleteNotif(item.id);
+  };
+
+  const handleRowClick = () => {
+    if (item.link) {
+      navigate(item.link);
+    }
   };
 
   const createdDate = new Date(item.created_at);
@@ -29,14 +37,16 @@ function NotificationRow({ item }: { item: NotificationItem }) {
   
   const typeDisplay = item.type.toUpperCase();
   
-
   return (
-    <TableRow>
-      <TableCell className="font-medium text-red-600">{username}</TableCell>
+    <TableRow
+      onClick={handleRowClick}
+      className={`${item.link ? "cursor-pointer hover:bg-muted/50" : ""}`}
+    >
+      {/* <TableCell className="text-red-600">{username.toUpperCase()}</TableCell> */}
       <TableCell className="w-32 truncate text-sm text-muted-foreground">{item.message}</TableCell>
-      <TableCell className="text-xs font-semibold lg:pl-48"> {typeDisplay} </TableCell>
+      <TableCell className="text-xs font-bold lg:pl-44">{typeDisplay}</TableCell>
       <TableCell className="text-xs text-right text-muted-foreground">{displayTime}</TableCell>
-      {/* <TableCell className="w-12">
+      {/* <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
         <Button
           variant="ghost"
           size="sm"
