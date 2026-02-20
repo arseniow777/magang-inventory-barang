@@ -16,7 +16,7 @@ export function useLogin() {
     mutationFn: authAPI.login,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
-      if (isLinked) {
+      if (!isLinked) {
         navigate(ROUTES.TELEGRAM_CONFIRM);
       } else {
         navigate(ROUTES.DASHBOARD);
