@@ -61,22 +61,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     administratif: [
       {
         name: "Daftar permintaan",
-        url: "/dashboard/requests",
+        url: "/dashboard/permintaan",
         icon: <IconMailbox />,
       },
       {
         name: "Berita acara",
-        url: "/dashboard/reports",
+        url: "/dashboard/berita",
         icon: <IconFileDescription />,
       },
       {
         name: "Lokasi",
-        url: "/dashboard/locations",
+        url: "/dashboard/lokasi",
         icon: <IconBuildingCommunity />,
       },
       {
         name: "Pengguna",
-        url: "/dashboard/users",
+        url: "/dashboard/pengguna",
         icon: <IconUsersGroup />,
       },
     ],
@@ -88,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: "Audit log",
-        url: "#",
+        url: "/dashboard/audit",
         icon: <IconHistory />,
       },
       {

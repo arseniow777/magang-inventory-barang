@@ -20,14 +20,19 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../createbarang/pages/CreatePage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
+import PermintaanPage from "../../permintaan/pages/PermintaanPage";
+import BeritaPage from "../../berita/pages/BeritaPage";
+import AuditPage from "../../audit/pages/AuditPage";
+import PenggunaPage from "../../pengguna/pages/PenggunaPage";
+import LokasiPage from "../../lokasi/pages/LokasiPage";
 
 const placeholders: { [key: string]: string } = {
   "/dashboard": "Beranda",
   "/dashboard/barang": "Barang",
-  "/dashboard/requests": "Daftar permintaan",
-  "/dashboard/reports": "Berita acara",
-  "/dashboard/locations": "Lokasi",
-  "/dashboard/users": "Pengguna",
+  "/dashboard/permintaan": "Daftar permintaan",
+  "/dashboard/berita": "Berita acara",
+  "/dashboard/lokasi": "Lokasi",
+  "/dashboard/pengguna": "Pengguna",
 };
 
 export default function Dashboard() {
@@ -99,9 +104,19 @@ export default function Dashboard() {
         {/* Dynamic Content based on Route */}
         <div className="flex flex-1 flex-col p-7">
           <Routes>
+            {/* Umum */}
             <Route path="/" element={<BerandaPage />} />
             <Route path="/barang" element={<BarangPage />} />
             <Route path="/barang/create" element={<CreatePage />} />
+
+            {/* Administratif */}
+            <Route path="/permintaan" element={<PermintaanPage />} />
+            <Route path="/berita" element={<BeritaPage />} />
+            <Route path="/lokasi" element={<LokasiPage />} />
+            <Route path="/pengguna" element={<PenggunaPage />} />
+
+            {/* Secondary */}
+            <Route path="/audit" element={<AuditPage />} />
             <Route
               path="/*"
               element={

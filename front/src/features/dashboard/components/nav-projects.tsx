@@ -30,19 +30,19 @@ export function NavProjects({
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu>
-        {sections.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <Link to={item.url}>
+        {sections.map((sections) => (
+          <SidebarMenuItem key={sections.name}>
+            <Link to={sections.url}>
               <SidebarMenuButton
                 className={`w-full transition-colors ${
-                  isActive(item.url)
+                  isActive(sections.url)
                     ? "bg-sidebar-border text-sidebar-accent-foreground"
                     : "hover:bg-sidebar-accent/50"
                 }`}
-                title={item.name}
+                title={sections.name}
               >
-                {item.icon}
-                <span>{item.name}</span>
+                {sections.icon}
+                <span>{sections.name}</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
