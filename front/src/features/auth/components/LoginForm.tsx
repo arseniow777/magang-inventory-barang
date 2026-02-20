@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { getAuthImagePath } from "@/lib/timeOfDay";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 import {
   Field,
@@ -24,6 +25,7 @@ export function LoginForm({
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [showPassword, setShowPassword] = useState(false);
   const { mutate, isPending, error } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,14 +85,28 @@ export function LoginForm({
                     Lupa kata sandi?
                   </a>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={data.password}
-                  onChange={(e) =>
-                    setData({ ...data, password: e.target.value })
-                  }
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={data.password}
+                    onChange={(e) =>
+                      setData({ ...data, password: e.target.value })
+                    }
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? (
+                      <IconEyeOff className="h-4 w-4" />
+                    ) : (
+                      <IconEye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 <p
                   className={cn(
                     "text-red-600 text-xs",

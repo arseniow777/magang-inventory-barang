@@ -8,7 +8,5 @@ export const authAPI = {
 
   getMe: () => apiClient.get<User>("/auth/me"),
 
-  logout: () => {
-    localStorage.removeItem("token");
-  },
+  logout: () => apiClient.post<void>("/auth/logout"),
 };

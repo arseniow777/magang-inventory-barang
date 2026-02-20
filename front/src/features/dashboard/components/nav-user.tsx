@@ -24,6 +24,7 @@ import {
   IconLogout,
   IconUser,
 } from "@tabler/icons-react";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 
 export function NavUser({
   user,
@@ -35,7 +36,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const navigate = useNavigate();
+  const { mutate: logout } = useLogout();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -92,7 +93,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logout()}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

@@ -1,0 +1,29 @@
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { ROUTES } from "@/constants/routes";
+
+export function RootRedirect() {
+  const { data: user, isLoading } = useAuth();
+  const token = localStorage.getItem("token");
+
+  // Loading state
+  if (isLoading && token) {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <div className="text-lg">Memuat...</div>
+      </div>
+    );
+  }
+
+  // If user is logged in, redirect based on telegram status
+  if (token && user) {
+    if (user.telegram_id) {
+      return <Navigate to={ROUTES.DASHBOARD} replace />;
+    } else {
+      return <Navigate to={ROUTES.TELEGRAM_CONFIRM} replace />;
+    }
+  }
+
+  // Not logged in, go to login page
+  return <Navigate to={ROUTES.LOGIN} replace />;
+}
