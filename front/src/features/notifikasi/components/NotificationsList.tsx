@@ -42,7 +42,7 @@ function NotificationRow({ item }: { item: NotificationItem }) {
       onClick={handleRowClick}
       className={`${item.link ? "cursor-pointer hover:bg-muted/50" : ""}`}
     >
-      <TableCell className="text-red-600">{username}</TableCell>
+      {/* <TableCell className="text-red-600">{username.toUpperCase()}</TableCell> */}
       <TableCell className="w-32 truncate text-sm text-muted-foreground">{item.message}</TableCell>
       <TableCell className="text-xs font-bold lg:pl-44">{typeDisplay}</TableCell>
       <TableCell className="text-xs text-right text-muted-foreground">{displayTime}</TableCell>
