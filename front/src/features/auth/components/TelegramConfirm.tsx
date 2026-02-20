@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useLogout } from "../hooks/useLogout";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +31,7 @@ export function TelegramConfirm({
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const { data: user, isLoading, refetch } = useAuth();
+  const { mutate: logout } = useLogout();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const isLinked = !!user?.telegram_id;
@@ -55,6 +57,10 @@ export function TelegramConfirm({
 
   const handleContinue = () => {
     navigate(ROUTES.DASHBOARD);
+  };
+
+  const handleBack = () => {
+    logout();
   };
 
   if (isLoading) {
@@ -111,7 +117,7 @@ export function TelegramConfirm({
                 </>
               ) : (
                 <>
-                  <div className="flex flex-col items-center gap-2 text-center">
+                  {/* <div className="flex flex-col items-center gap-2 text-center">
                     <p className="text-muted-foreground text-balance">
                       Cari bot <strong>@invetel_bot</strong> di Telegram, lalu
                       kirim pesan untuk menghubungkan akun.
@@ -120,7 +126,7 @@ export function TelegramConfirm({
 
                   <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                     Atau
-                  </FieldSeparator>
+                  </FieldSeparator> */}
 
                   <div className="flex flex-col items-center gap-2 text-center">
                     <p className="text-muted-foreground text-balance">
@@ -150,10 +156,10 @@ export function TelegramConfirm({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={handleRefresh}
+                      onClick={handleBack}
                       className="w-full"
                     >
-                      Saya sudah menghubungkan, cek ulang
+                      Kembali masuk
                     </Button>
                   </Field>
 
