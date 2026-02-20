@@ -127,8 +127,7 @@ export const contactAdmin = async (req, res, next) => {
           data: {
             user_id: admin.id,
             message: `Pesan dari ${user.name} (${user.username}): ${message}`,
-            type: 'system',
-            status: 'pending'
+            type: 'system'
           }
         })
       )

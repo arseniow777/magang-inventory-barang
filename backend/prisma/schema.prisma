@@ -13,10 +13,11 @@ enum Role {
   admin
 }
 
-enum NotificationStatus {
-  Succeed 
-  failed
-  pending
+enum NotificationType {
+  request
+  report
+  password
+  system
 }
 
 enum RequestStatus {
@@ -223,8 +224,7 @@ model ItemLogHistory {
 model Notifications {
   id          Int                @id @default(autoincrement())
   message     String             @db.Text
-  type        String?            // 'request', 'report', 'password', 'system'
-  status      NotificationStatus @default(pending)
+  type        NotificationType
   created_at  DateTime           @default(now())
 
   user_id     Int

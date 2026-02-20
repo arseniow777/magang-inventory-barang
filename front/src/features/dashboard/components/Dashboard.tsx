@@ -25,6 +25,7 @@ import BeritaPage from "../../berita/pages/BeritaPage";
 import AuditPage from "../../audit/pages/AuditPage";
 import PenggunaPage from "../../pengguna/pages/PenggunaPage";
 import LokasiPage from "../../lokasi/pages/LokasiPage";
+import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
 
 const placeholders: { [key: string]: string } = {
   "/dashboard": "Beranda",
@@ -33,6 +34,7 @@ const placeholders: { [key: string]: string } = {
   "/dashboard/berita": "Berita acara",
   "/dashboard/lokasi": "Lokasi",
   "/dashboard/pengguna": "Pengguna",
+  "/dashboard/users/notification": "Notifikasi",
 };
 
 export default function Dashboard() {
@@ -117,6 +119,7 @@ export default function Dashboard() {
 
             {/* Secondary */}
             <Route path="/audit" element={<AuditPage />} />
+            <Route path="/users/notification" element={<NotificationsPage />} />
             <Route
               path="/*"
               element={

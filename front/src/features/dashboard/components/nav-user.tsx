@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -86,7 +87,7 @@ export function NavUser({
                 <IconUserCircle />
                 Profil akun
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notification") }>
                 <IconBell />
                 Notifikasi
               </DropdownMenuItem>

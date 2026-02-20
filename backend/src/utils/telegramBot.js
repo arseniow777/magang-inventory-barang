@@ -17,6 +17,7 @@ const getMenu = () => ({
       { text: 'Request Terakhir', callback_data: 'menu_requests' },
       { text: 'Berita Acara Terakhir', callback_data: 'menu_reports' }
     ],
+    [{ text: 'Return Barang', callback_data: 'menu_return' }],
     [{ text: 'Ganti Password', callback_data: 'menu_reset_password' }],
     [{ text: 'Hubungi Admin', callback_data: 'menu_contact_admin' }],
     // [{ text: 'Buka Website', url: `${FRONTEND_URL}/dashboard` }]
@@ -184,6 +185,128 @@ if (bot) {
         }
       }
 
+      if (data === 'menu_return') {
+        const borrowRequest = await prisma.requests.findFirst({
+          where: {
+            pic_id: user.id,
+            request_type: 'borrow',
+            status: 'approved',
+            returned_at: null
+          },
+          include: {
+            destination_location: true,
+            _count: { select: { request_items: true } }
+          },
+          orderBy: { created_at: 'desc' }
+        });
+
+        if (!borrowRequest) {
+          await bot.sendMessage(chatId, 'Tidak ada barang yang perlu dikembalikan.');
+        } else {
+          const locations = await prisma.locations.findMany();
+
+          const locationButtons = locations.map(loc => ([{
+            text: `${loc.building_name} Lt.${loc.floor}`,
+            callback_data: `return_confirm:${borrowRequest.id}:${loc.id}`
+          }]));
+
+          await bot.sendMessage(
+            chatId,
+            `*Return Barang*\n\nKode: ${borrowRequest.request_code}\nJumlah Item: ${borrowRequest._count.request_items}\nTujuan: ${borrowRequest.destination_location?.building_name || '-'}\n\nPilih lokasi pengembalian:`,
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: locationButtons } }
+          );
+        }
+      }
+
+      if (data.startsWith('return_confirm:')) {
+        const [, requestId, locationId] = data.split(':');
+
+        const request = await prisma.requests.findUnique({
+          where: { id: parseInt(requestId) },
+          include: {
+            request_items: {
+              include: {
+                unit: { include: { location: true } }
+              }
+            }
+          }
+        });
+
+        if (!request) {
+          await bot.sendMessage(chatId, 'Request tidak ditemukan.');
+        } else if (request.pic_id !== user.id) {
+          await bot.sendMessage(chatId, 'Anda tidak memiliki akses ke request ini.');
+        } else if (request.request_type !== 'borrow' || request.status !== 'approved' || request.returned_at) {
+          await bot.sendMessage(chatId, 'Request tidak valid untuk dikembalikan.');
+        } else {
+          const location = await prisma.locations.findUnique({
+            where: { id: parseInt(locationId) }
+          });
+
+          if (!location) {
+            await bot.sendMessage(chatId, 'Lokasi tidak ditemukan.');
+          } else {
+            for (const requestItem of request.request_items) {
+              await prisma.itemUnits.update({
+                where: { id: requestItem.unit_id },
+                data: {
+                  status: 'available',
+                  location_id: parseInt(locationId)
+                }
+              });
+
+              await prisma.itemLogHistory.create({
+                data: {
+                  unit_id: requestItem.unit_id,
+                  from_location_id: requestItem.unit.location_id,
+                  to_location_id: parseInt(locationId),
+                  request_id: request.id,
+                  moved_by_id: user.id
+                }
+              });
+            }
+
+            await prisma.requests.update({
+              where: { id: parseInt(requestId) },
+              data: {
+                status: 'completed',
+                returned_at: new Date(),
+                return_location_id: parseInt(locationId),
+                returned_by_id: user.id
+              }
+            });
+
+            await createAuditLog({
+              actor_id: user.id,
+              actor_role: user.role,
+              action: 'UPDATE',
+              entity_type: 'Requests',
+              entity_id: request.id,
+              description: `${user.username} melakukan return request ${request.request_code} via Telegram`
+            });
+
+            const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+
+            await Promise.all(
+              admins.map(admin =>
+                prisma.notifications.create({
+                  data: {
+                    user_id: admin.id,
+                    message: `${user.name} mengembalikan barang dari request ${request.request_code} via Telegram`,
+                    type: 'request',
+                  }
+                })
+              )
+            );
+
+            await bot.sendMessage(
+              chatId,
+              `Barang dari request ${request.request_code} berhasil dikembalikan ke ${location.building_name} Lt.${location.floor}.`
+            );
+          }
+        }
+      }
+
       if (data === 'menu_reset_password') {
         await bot.sendMessage(
           chatId,
@@ -228,8 +351,7 @@ if (bot) {
             data: {
               user_id: admin.id,
               message: `Pesan dari ${user.name} (${user.username}): ${message}`,
-              type: 'system',
-              status: 'pending'
+              type: 'system'
             }
           })
         )
@@ -299,8 +421,7 @@ if (bot) {
               data: {
                 user_id: admin.id,
                 message: `${targetUser.name} (${targetUser.username}) mengajukan reset password`,
-                type: 'password',
-                status: 'pending'
+                type: 'password'
               }
             })
           )
