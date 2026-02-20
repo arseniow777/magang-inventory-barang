@@ -18,6 +18,8 @@ import { IconSun, IconMoon } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
+import CreatePage from "../../createbarang/pages/CreatePage";
+import BerandaPage from "../../beranda/pages/BerandaPage";
 
 const placeholders: { [key: string]: string } = {
   "/dashboard": "Beranda",
@@ -97,7 +99,9 @@ export default function Dashboard() {
         {/* Dynamic Content based on Route */}
         <div className="flex flex-1 flex-col p-7">
           <Routes>
+            <Route path="/" element={<BerandaPage />} />
             <Route path="/barang" element={<BarangPage />} />
+            <Route path="/barang/create" element={<CreatePage />} />
             <Route
               path="/*"
               element={
