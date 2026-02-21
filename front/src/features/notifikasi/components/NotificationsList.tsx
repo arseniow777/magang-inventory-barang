@@ -5,6 +5,8 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  TableHeader,
+  TableHead,
 } from "@/components/ui/table";
 import { useNotifications, useDeleteNotification } from "../hooks/useNotifications";
 import type { NotificationItem } from "../types/notification.types";
@@ -43,7 +45,7 @@ function NotificationRow({ item }: { item: NotificationItem }) {
       className={`${item.link ? "cursor-pointer hover:bg-muted/50" : ""}`}
     >
       {/* <TableCell className="text-red-600">{username.toUpperCase()}</TableCell> */}
-      <TableCell className="w-32 truncate text-sm text-muted-foreground">{item.message}</TableCell>
+      <TableCell className="w-32 truncate text-sm text-muted-foreground pl-0">{item.message}</TableCell>
       <TableCell className="text-xs font-bold lg:pl-44">{typeDisplay}</TableCell>
       <TableCell className="text-xs text-right text-muted-foreground">{displayTime}</TableCell>
       {/* <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
@@ -84,6 +86,13 @@ export function NotificationsList() {
   return (
    
         <Table>
+          <TableHeader>
+          <TableRow>
+            <TableHead className="pl-0">Pesan</TableHead>
+            <TableHead className="lg:pl-44">Tipe</TableHead>
+            <TableHead className="text-right">Waktu</TableHead>
+          </TableRow>
+        </TableHeader>
           <TableBody>
             {Array.isArray(data) && data.length > 0 ? (
               data.map((n) => <NotificationRow key={n.id} item={n} />)

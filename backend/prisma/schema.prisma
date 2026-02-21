@@ -225,10 +225,11 @@ model Notifications {
   id          Int                @id @default(autoincrement())
   message     String             @db.Text
   type        NotificationType
+  link        String?            // Optional link untuk navigate di FE
   created_at  DateTime           @default(now())
 
   user_id     Int
-  user        Users               @relation(fields: [user_id], references: [id])
+  user        Users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 
