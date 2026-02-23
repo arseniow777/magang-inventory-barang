@@ -55,6 +55,29 @@ export const getUserById = async (req, res, next) => {
   }
 };
 
+export const getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        employee_id: true,
+        username: true,
+        name: true,
+        role: true,
+        phone_number: true,
+        telegram_id: true,
+        is_active: true,
+        created_at: true,
+      },
+    });
+
+    return sendSuccess(res, "Profil berhasil diambil", user);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createUser = async (req, res, next) => {
   try {
     const { employee_id, username, name, role, phone_number, telegram_id, password } = req.body;
@@ -142,6 +165,36 @@ export const updateUser = async (req, res, next) => {
     });
 
     return sendSuccess(res, "Akun berhasil diupdate");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateCurrentUser = async (req, res, next) => {
+  try {
+    const { username, name, phone_number } = req.body;
+
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (name) updateData.name = name;
+    if (phone_number !== undefined) updateData.phone_number = phone_number;
+
+    const user = await prisma.users.update({
+      where: { id: req.user.id },
+      data: updateData,
+    });
+
+    await createAuditLog({
+      actor_id: req.user.id,
+      actor_role: req.user.role,
+      action: "UPDATE",
+      entity_type: "Users",
+      entity_id: user.id,
+      description: `${req.user.username} mengupdate profil sendiri`,
+      user_agent: req.headers["user-agent"],
+    });
+
+    return sendSuccess(res, "Profil berhasil diupdate");
   } catch (err) {
     next(err);
   }

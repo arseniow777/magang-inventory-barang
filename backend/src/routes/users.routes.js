@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUsers, getUserById, createUser, updateUser, deleteUser, generateTelegramLink, disconnectTelegram } from "../controllers/users.controller.js";
+import { getUsers, getUserById, getCurrentUser, createUser, updateUser, updateCurrentUser, deleteUser, generateTelegramLink, disconnectTelegram } from "../controllers/users.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { checkRole } from "../middleware/role.middleware.js";
 
@@ -8,6 +8,8 @@ const router = Router();
 router.use(verifyToken);
 router.post("/telegram/generate-link", generateTelegramLink);
 router.post("/telegram/disconnect", disconnectTelegram);
+router.get("/me", getCurrentUser);
+router.put("/me", updateCurrentUser);
 
 router.use(checkRole("admin"));
 

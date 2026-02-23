@@ -2,9 +2,9 @@ export interface NotificationItem {
   id: number;
   user_id: number;
   message: string;
-  type: string;
+  type: "request" | "report" | "password" | "system";
   created_at: string;
-  link?: string | null;
+  // link?: string | null;
   user?: {
     id: number;
     username: string;

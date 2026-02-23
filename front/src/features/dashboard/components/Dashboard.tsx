@@ -26,6 +26,7 @@ import AuditPage from "../../audit/pages/AuditPage";
 import PenggunaPage from "../../pengguna/pages/PenggunaPage";
 import LokasiPage from "../../lokasi/pages/LokasiPage";
 import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
+import ProfilPage from "../../akun/pages/ProfilPage";
 
 const placeholders: { [key: string]: string } = {
   "/dashboard": "Beranda",
@@ -119,7 +120,8 @@ export default function Dashboard() {
 
             {/* Secondary */}
             <Route path="/audit" element={<AuditPage />} />
-            <Route path="/users/notification" element={<NotificationsPage />} />
+            <Route path="/users/notifikasi" element={<NotificationsPage />} />
+            <Route path="/users/profil" element={<ProfilPage />} />
             <Route
               path="/*"
               element={

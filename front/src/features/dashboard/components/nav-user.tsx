@@ -84,11 +84,11 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/users/profil")}>
                 <IconUserCircle />
                 Profil akun
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notification")}>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notifikasi")}>
                 <IconBell />
                 Notifikasi
               </DropdownMenuItem>

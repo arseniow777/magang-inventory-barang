@@ -99,7 +99,16 @@ export const createRequest = async (req, res, next) => {
         }
       },
       include: {
-        pic: true,
+        pic:{
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            role: true,
+            telegram_id: true,
+            employee_id: true,
+          }
+        },
         destination_location: true,
         request_items: {
           include: {
@@ -131,7 +140,7 @@ export const createRequest = async (req, res, next) => {
         prisma.notifications.create({
           data: {
             user_id: admin.id,
-            message: `${req.user.name} membuat request ${request_code} (${request_type})`,
+            message: `${req.user.username} membuat request ${request_code} (${request_type})`,
             type: 'request'
           }
         })
@@ -572,7 +581,7 @@ export const returnRequest = async (req, res, next) => {
         prisma.notifications.create({
           data: {
             user_id: admin.id,
-            message: `${req.user.name} mengembalikan barang dari request ${request.request_code}`,
+            message: `${req.user.username} mengembalikan barang dari request ${request.request_code}`,
             type: 'request'
           }
         })
