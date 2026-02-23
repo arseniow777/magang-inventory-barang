@@ -27,11 +27,8 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
-  IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
   // IconTrendingUp,
 } from "@tabler/icons-react";
@@ -109,13 +106,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  action: z.string(),
+  entity_type: z.string(),
+  entity_id: z.number(),
+  description: z.string().nullable(),
+  actor_role: z.string(),
+  user_agent: z.string().nullable(),
+  created_at: z.string(),
+  actor: z.object({
+    id: z.number(),
+    name: z.string(),
+    username: z.string(),
+    role: z.string(),
+  }),
 });
+
+const actionBadgeClass: Record<string, string> = {
+  CREATE: "bg-green-100 text-green-700 hover:bg-green-100",
+  UPDATE: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+  DELETE: "bg-red-100 text-red-700 hover:bg-red-100",
+  APPROVE: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
+  REJECT: "bg-orange-100 text-orange-700 hover:bg-orange-100",
+  LOGIN: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+  LOGOUT: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+  ARCHIVE: "bg-purple-100 text-purple-700 hover:bg-purple-100",
+  RESET_PASSWORD_REQUEST: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 // Drag handle - commented out until @dnd-kit is installed
 // function DragHandle({ id }: { id: number }) {
@@ -138,121 +163,59 @@ export const schema = z.object({
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  // Drag column - commented out until @dnd-kit is installed
-  // {
-  //   id: "drag",
-  //   header: () => null,
-  //   cell: ({ row }) => <DragHandle id={row.original.id} />,
-  // },
-  // Select column - commented out until Checkbox component is created
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && "indeterminate")
-  //         }
-  //         onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
-  //         aria-label="Select all"
-  //       />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={row.getIsSelected()}
-  //         onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-  //         aria-label="Select row"
-  //       />
-  //     </div>
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
-    accessorKey: "header",
-    header: "Nama Barang",
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.original.header}</div>;
-    },
+    accessorKey: "action",
+    header: "Aksi",
+    cell: ({ row }) => (
+      <Badge
+        className={actionBadgeClass[row.original.action] ?? ""}
+        variant="secondary"
+      >
+        {row.original.action}
+      </Badge>
+    ),
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Tipe Permintaan",
+    accessorKey: "entity_type",
+    header: "Entitas",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
-        </Badge>
+      <div>
+        <span className="font-medium">{row.original.entity_type}</span>
+        <span className="text-muted-foreground ml-1">
+          #{row.original.entity_id}
+        </span>
       </div>
     ),
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    id: "actor",
+    header: "Dilakukan Oleh",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
-      </Badge>
+      <div>
+        <div className="font-medium">{row.original.actor.name}</div>
+        <div className="text-muted-foreground text-xs">
+          @{row.original.actor.username}
+        </div>
+      </div>
     ),
   },
   {
-    accessorKey: "target",
-    header: "Target",
-    cell: ({ row }) => <div>{row.original.target}</div>,
+    accessorKey: "description",
+    header: "Keterangan",
+    cell: ({ row }) => (
+      <div className="max-w-xs truncate text-sm">
+        {row.original.description || "-"}
+      </div>
+    ),
   },
   {
-    accessorKey: "limit",
-    header: "Batas Waktu",
-    cell: ({ row }) => <div>{row.original.limit}</div>,
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-
-      return (
-        <span className="text-muted-foreground text-sm italic">
-          Belum ditugaskan
-        </span>
-      );
-    },
-  },
-  {
-    id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    accessorKey: "created_at",
+    header: "Waktu",
+    cell: ({ row }) => (
+      <div className="text-sm whitespace-nowrap">
+        {formatDate(row.original.created_at)}
+      </div>
     ),
   },
 ];
@@ -486,7 +449,7 @@ export function DataTable({
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div> */}
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            Total: {table.getFilteredRowModel().rows.length} permintaan
+            Total: {table.getFilteredRowModel().rows.length} log
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">

@@ -1,30 +1,26 @@
 import { apiClient } from "@/lib/api";
-import type { RequestData } from "../types/permintaan.types";
+import type { ReportData } from "../types/permintaan.types";
 
-// TODO: Implement actual API calls when backend is ready
-export const permintaanAPI = {
-  // Get all requests
-  getRequests: () => apiClient.get<RequestData[]>("/requests"),
+export const reportsAPI = {
+  // Get all reports
+  getReports: (params?: { report_type?: string; is_approved?: boolean }) =>
+    apiClient.get<ReportData[]>("/reports", params),
 
-  // Get single request
-  getRequest: (id: number) => apiClient.get<RequestData>(`/requests/${id}`),
+  // Get single report
+  getReport: (id: number) => apiClient.get<ReportData>(`/reports/${id}`),
 
-  // Create new request
-  createRequest: (data: Omit<RequestData, "id">) =>
-    apiClient.post<RequestData>("/requests", data),
+  // Get report by request ID
+  getReportByRequestId: (requestId: number) =>
+    apiClient.get<ReportData>(`/reports/request/${requestId}`),
 
-  // Update existing request
-  updateRequest: (id: number, data: Partial<RequestData>) =>
-    apiClient.put<RequestData>(`/requests/${id}`, data),
+  // Download report
+  downloadReport: (id: number) => `/api/v1/reports/${id}/download`,
 
-  // Delete request
-  deleteRequest: (id: number) => apiClient.delete<void>(`/requests/${id}`),
+  // Approve report
+  approveReport: (id: number) =>
+    apiClient.put<ReportData>(`/reports/${id}/approve`, {}),
 
-  // Approve request
-  approveRequest: (id: number) =>
-    apiClient.post<RequestData>(`/requests/${id}/approve`),
-
-  // Reject request
-  rejectRequest: (id: number, reason?: string) =>
-    apiClient.post<RequestData>(`/requests/${id}/reject`, { reason }),
+  // Reject report
+  rejectReport: (id: number) =>
+    apiClient.put<ReportData>(`/reports/${id}/reject`, {}),
 };

@@ -27,11 +27,9 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
   // IconTrendingUp,
 } from "@tabler/icons-react";
@@ -109,13 +107,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  request_code: z.string(),
+  request_type: z.enum(["borrow", "transfer", "sell", "demolish"]),
+  reason: z.string(),
+  status: z.enum(["pending", "approved", "rejected", "completed"]),
+  approved_at: z.string().nullable(),
+  created_at: z.string(),
+  destination_location: z.object({ building_name: z.string() }).nullable(),
+  pic: z.object({ id: z.number(), name: z.string(), username: z.string() }),
+  admin: z.object({ id: z.number(), name: z.string() }).nullable(),
+  _count: z.object({ request_items: z.number() }),
 });
+
+const requestTypeLabels: Record<string, string> = {
+  borrow: "Peminjaman",
+  transfer: "Transfer",
+  sell: "Penjualan",
+  demolish: "Penghapusan",
+};
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  pending: {
+    label: "Menunggu",
+    className: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
+  },
+  approved: {
+    label: "Disetujui",
+    className: "bg-green-100 text-green-700 hover:bg-green-100",
+  },
+  rejected: {
+    label: "Ditolak",
+    className: "bg-red-100 text-red-700 hover:bg-red-100",
+  },
+  completed: {
+    label: "Selesai",
+    className: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+  },
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
 // Drag handle - commented out until @dnd-kit is installed
 // function DragHandle({ id }: { id: number }) {
@@ -138,98 +173,57 @@ export const schema = z.object({
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  // Drag column - commented out until @dnd-kit is installed
-  // {
-  //   id: "drag",
-  //   header: () => null,
-  //   cell: ({ row }) => <DragHandle id={row.original.id} />,
-  // },
-  // Select column - commented out until Checkbox component is created
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && "indeterminate")
-  //         }
-  //         onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
-  //         aria-label="Select all"
-  //       />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={row.getIsSelected()}
-  //         onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-  //         aria-label="Select row"
-  //       />
-  //     </div>
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
-    accessorKey: "header",
-    header: "Nama Barang",
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.original.header}</div>;
-    },
+    accessorKey: "request_code",
+    header: "Kode Permintaan",
+    cell: ({ row }) => (
+      <div className="font-medium">{row.original.request_code}</div>
+    ),
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Tipe Permintaan",
+    accessorKey: "request_type",
+    header: "Tipe",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
-        </Badge>
-      </div>
+      <Badge variant="outline">
+        {requestTypeLabels[row.original.request_type] ||
+          row.original.request_type}
+      </Badge>
     ),
   },
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      const cfg = statusConfig[row.original.status];
+      return (
+        <Badge className={cfg?.className ?? ""} variant="secondary">
+          {cfg?.label ?? row.original.status}
+        </Badge>
+      );
+    },
+  },
+  {
+    id: "pic",
+    header: "PIC",
+    cell: ({ row }) => <div>{row.original.pic.name}</div>,
+  },
+  {
+    id: "lokasi",
+    header: "Lokasi Tujuan",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
-      </Badge>
+      <div>{row.original.destination_location?.building_name || "-"}</div>
     ),
   },
   {
-    accessorKey: "target",
-    header: "Target",
-    cell: ({ row }) => <div>{row.original.target}</div>,
+    id: "jumlah_item",
+    header: "Jumlah Item",
+    cell: ({ row }) => <div>{row.original._count.request_items} item</div>,
   },
   {
-    accessorKey: "limit",
-    header: "Batas Waktu",
-    cell: ({ row }) => <div>{row.original.limit}</div>,
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-
-      return (
-        <span className="text-muted-foreground text-sm italic">
-          Belum ditugaskan
-        </span>
-      );
-    },
+    accessorKey: "created_at",
+    header: "Tanggal",
+    cell: ({ row }) => <div>{formatDate(row.original.created_at)}</div>,
   },
   {
     id: "actions",
@@ -246,11 +240,10 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
+          <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Delete</DropdownMenuItem>
+          <DropdownMenuItem>Setujui</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Tolak</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),

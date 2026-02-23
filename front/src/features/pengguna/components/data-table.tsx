@@ -27,11 +27,9 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
   // IconTrendingUp,
 } from "@tabler/icons-react";
@@ -109,13 +107,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  employee_id: z.string(),
+  username: z.string(),
+  name: z.string(),
+  role: z.string(),
+  phone_number: z.string().nullable(),
+  telegram_id: z.string().nullable(),
+  is_active: z.boolean(),
+  created_at: z.string(),
 });
+
+const roleLabels: Record<string, string> = {
+  admin: "Admin",
+  pic: "PIC",
+  staff: "Staff",
+};
+
+const roleBadgeClass: Record<string, string> = {
+  admin: "bg-red-100 text-red-700 hover:bg-red-100",
+  pic: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+  staff: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
 // Drag handle - commented out until @dnd-kit is installed
 // function DragHandle({ id }: { id: number }) {
@@ -138,98 +157,67 @@ export const schema = z.object({
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  // Drag column - commented out until @dnd-kit is installed
-  // {
-  //   id: "drag",
-  //   header: () => null,
-  //   cell: ({ row }) => <DragHandle id={row.original.id} />,
-  // },
-  // Select column - commented out until Checkbox component is created
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && "indeterminate")
-  //         }
-  //         onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
-  //         aria-label="Select all"
-  //       />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={row.getIsSelected()}
-  //         onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-  //         aria-label="Select row"
-  //       />
-  //     </div>
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
-    accessorKey: "header",
-    header: "Nama Barang",
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.original.header}</div>;
-    },
+    accessorKey: "employee_id",
+    header: "ID Karyawan",
+    cell: ({ row }) => (
+      <div className="font-mono text-sm">{row.original.employee_id}</div>
+    ),
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Tipe Permintaan",
+    accessorKey: "name",
+    header: "Nama",
+    cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+  },
+  {
+    accessorKey: "username",
+    header: "Username",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
-        </Badge>
-      </div>
+      <div className="text-muted-foreground">@{row.original.username}</div>
     ),
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "role",
+    header: "Role",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
+      <Badge
+        className={roleBadgeClass[row.original.role] ?? ""}
+        variant="secondary"
+      >
+        {roleLabels[row.original.role] || row.original.role}
       </Badge>
     ),
   },
   {
-    accessorKey: "target",
-    header: "Target",
-    cell: ({ row }) => <div>{row.original.target}</div>,
+    accessorKey: "phone_number",
+    header: "No. HP",
+    cell: ({ row }) => <div>{row.original.phone_number || "-"}</div>,
   },
   {
-    accessorKey: "limit",
-    header: "Batas Waktu",
-    cell: ({ row }) => <div>{row.original.limit}</div>,
+    accessorKey: "is_active",
+    header: "Status",
+    cell: ({ row }) =>
+      row.original.is_active ? (
+        <Badge
+          className="bg-green-100 text-green-700 hover:bg-green-100"
+          variant="secondary"
+        >
+          Aktif
+        </Badge>
+      ) : (
+        <Badge
+          className="bg-gray-100 text-gray-500 hover:bg-gray-100"
+          variant="secondary"
+        >
+          Nonaktif
+        </Badge>
+      ),
   },
   {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-
-      return (
-        <span className="text-muted-foreground text-sm italic">
-          Belum ditugaskan
-        </span>
-      );
-    },
+    accessorKey: "created_at",
+    header: "Bergabung",
+    cell: ({ row }) => <div>{formatDate(row.original.created_at)}</div>,
   },
   {
     id: "actions",
@@ -247,10 +235,8 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
           <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Delete</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Hapus</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -486,7 +472,7 @@ export function DataTable({
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div> */}
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            Total: {table.getFilteredRowModel().rows.length} permintaan
+            Total: {table.getFilteredRowModel().rows.length} pengguna
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">

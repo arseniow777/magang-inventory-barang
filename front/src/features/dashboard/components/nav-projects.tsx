@@ -36,8 +36,8 @@ export function NavProjects({
               <SidebarMenuButton
                 className={`w-full transition-colors ${
                   isActive(sections.url)
-                    ? "bg-sidebar-border text-sidebar-accent-foreground"
-                    : "hover:bg-sidebar-accent/50"
+                    ? "bg-sidebar-border text-sidebar-accent-foreground border"
+                    : "hover:border hover:bg-sidebar-border"
                 }`}
                 title={sections.name}
               >

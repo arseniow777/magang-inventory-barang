@@ -9,6 +9,9 @@ export default function PermintaanPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Daftar Permintaan</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Kelola permintaan peminjaman dan pengembalian barang
+          </p>
         </div>
       </div>
 

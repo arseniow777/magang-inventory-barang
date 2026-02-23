@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { RootRedirect } from "@/features/auth/components/RootRedirect";
 import { Routes, Route } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           }
         />
       </Routes>
+      <Toaster />
     </TooltipProvider>
   );
 }

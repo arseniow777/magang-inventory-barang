@@ -1,14 +1,17 @@
+import { useReportsData } from "../hooks/usePermintaanData";
 import { DataTable } from "../components/data-table";
-import { usePermintaanData } from "../hooks/usePermintaanData";
 
 export default function BeritaPage() {
-  const { data: requests = [], isLoading } = usePermintaanData();
+  const { data: reports = [], isLoading } = useReportsData();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Daftar Berita</h1>
+          <h1 className="text-2xl font-bold">Berita Acara</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Daftar berita acara peminjaman dan pengembalian barang
+          </p>
         </div>
       </div>
 
@@ -17,7 +20,7 @@ export default function BeritaPage() {
           <p>Memuat data...</p>
         </div>
       ) : (
-        <DataTable data={requests} />
+        <DataTable data={reports} />
       )}
     </div>
   );

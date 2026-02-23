@@ -15,13 +15,15 @@ export function useCreateBarang() {
       files: File[];
     }) => {
       // Create item first
-      const itemResponse = (await createBarangAPI.createItem(data.barangData)) as CreateItemResponse;
-      
+      const itemResponse = (await createBarangAPI.createItem(
+        data.barangData,
+      )) as CreateItemResponse;
+
       // Upload photos if present
       if (data.files.length > 0) {
         await createBarangAPI.uploadPhotos(itemResponse.id, data.files);
       }
-      
+
       return itemResponse;
     },
   });

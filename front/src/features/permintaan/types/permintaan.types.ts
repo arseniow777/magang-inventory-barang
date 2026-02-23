@@ -1,12 +1,27 @@
 export interface RequestData {
   id: number;
-  header: string;
-  type: string;
-  status: string;
-  target: string;
-  limit: string;
-  reviewer: string;
+  request_code: string;
+  request_type: "borrow" | "transfer" | "sell" | "demolish";
+  reason: string;
+  status: "pending" | "approved" | "rejected" | "completed";
+  approved_at: string | null;
+  created_at: string;
+  destination_location: {
+    building_name: string;
+  } | null;
+  pic: {
+    id: number;
+    name: string;
+    username: string;
+  };
+  admin: {
+    id: number;
+    name: string;
+  } | null;
+  _count: {
+    request_items: number;
+  };
 }
 
-export type RequestStatus = "Pending" | "Approved" | "Rejected" | "Done";
-export type RequestType = "Peminjaman" | "Permintaan Barang" | "Pengembalian";
+export type RequestStatus = "pending" | "approved" | "rejected" | "completed";
+export type RequestType = "borrow" | "transfer" | "sell" | "demolish";

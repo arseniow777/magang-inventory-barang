@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createBarangAPI } from "../api/createbarang.api";
+import { createBarangAPI } from "../../barang/api/createbarang.api";
 
 export function useLocations() {
   return useQuery({
