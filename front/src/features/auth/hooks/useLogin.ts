@@ -12,7 +12,7 @@ export function useLogin() {
   return useMutation<LoginResponse, Error, LoginFormData>({
     mutationFn: authAPI.login,
     onSuccess: (data) => {
-      // Clear old cached data before setting new token
+      // clear old data
       queryClient.clear();
       localStorage.setItem("token", data.token);
       if (!data.user?.telegram_id) {

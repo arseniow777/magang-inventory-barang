@@ -22,16 +22,16 @@ import * as React from "react";
 // } from "@dnd-kit/sortable";
 // import { CSS } from "@dnd-kit/utilities";
 import {
+  IconCheck,
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
+  IconDownload,
   IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
   // IconTrendingUp,
 } from "@tabler/icons-react";
@@ -109,13 +109,46 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  report_number: z.string(),
+  report_type: z.string(),
+  issued_date: z.string(),
+  file_path: z.string(),
+  is_approved: z.boolean(),
+  approved_by_id: z.number().nullable(),
+  approved_at: z.string().nullable(),
+  request_id: z.number(),
+  issued_by_id: z.number(),
+  request: z
+    .object({
+      request_code: z.string(),
+      request_type: z.string(),
+      pic: z.object({ name: z.string() }),
+      destination_location: z.object({ building_name: z.string() }),
+    })
+    .optional(),
+  issued_by: z.object({ name: z.string() }).optional(),
+  approved_by: z.object({ name: z.string() }).nullable().optional(),
 });
+
+const reportTypeLabels: Record<string, string> = {
+  BORROW: "Peminjaman",
+  RETURN: "Pengembalian",
+  DAMAGE: "Kerusakan",
+  LOST: "Kehilangan",
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+const handleDownload = (reportId: number) => {
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+  window.open(`${API_URL}/reports/${reportId}/download`, "_blank");
+};
 
 // Drag handle - commented out until @dnd-kit is installed
 // function DragHandle({ id }: { id: number }) {
@@ -138,121 +171,74 @@ export const schema = z.object({
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  // Drag column - commented out until @dnd-kit is installed
-  // {
-  //   id: "drag",
-  //   header: () => null,
-  //   cell: ({ row }) => <DragHandle id={row.original.id} />,
-  // },
-  // Select column - commented out until Checkbox component is created
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && "indeterminate")
-  //         }
-  //         onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
-  //         aria-label="Select all"
-  //       />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={row.getIsSelected()}
-  //         onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-  //         aria-label="Select row"
-  //       />
-  //     </div>
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
-    accessorKey: "header",
-    header: "Nama Barang",
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.original.header}</div>;
-    },
+    accessorKey: "report_number",
+    header: "No. Berita Acara",
+    cell: ({ row }) => (
+      <div className="font-medium">{row.original.report_number}</div>
+    ),
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Tipe Permintaan",
+    accessorKey: "report_type",
+    header: "Tipe",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
-        </Badge>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
+      <Badge variant="outline">
+        {reportTypeLabels[row.original.report_type] || row.original.report_type}
       </Badge>
     ),
   },
   {
-    accessorKey: "target",
-    header: "Target",
-    cell: ({ row }) => <div>{row.original.target}</div>,
+    id: "request_code",
+    header: "No. Permintaan",
+    cell: ({ row }) => <div>{row.original.request?.request_code || "-"}</div>,
   },
   {
-    accessorKey: "limit",
-    header: "Batas Waktu",
-    cell: ({ row }) => <div>{row.original.limit}</div>,
+    id: "pic",
+    header: "PIC",
+    cell: ({ row }) => <div>{row.original.request?.pic?.name || "-"}</div>,
   },
   {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-
-      return (
-        <span className="text-muted-foreground text-sm italic">
-          Belum ditugaskan
-        </span>
-      );
-    },
+    id: "lokasi",
+    header: "Lokasi",
+    cell: ({ row }) => (
+      <div>
+        {row.original.request?.destination_location?.building_name || "-"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "issued_date",
+    header: "Tanggal",
+    cell: ({ row }) => <div>{formatDate(row.original.issued_date)}</div>,
+  },
+  {
+    accessorKey: "is_approved",
+    header: "Status",
+    cell: ({ row }) =>
+      row.original.is_approved ? (
+        <Badge className="bg-green-500 hover:bg-green-600">
+          <IconCheck className="h-3 w-3 mr-1" />
+          Disetujui
+        </Badge>
+      ) : (
+        <Badge variant="secondary">Menunggu Persetujuan</Badge>
+      ),
   },
   {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    header: () => <div className="text-right">Aksi</div>,
+    cell: ({ row }) => (
+      <div className="text-right">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleDownload(row.original.id)}
+        >
+          <IconDownload className="h-4 w-4 mr-2" />
+          Download
+        </Button>
+      </div>
     ),
   },
 ];
@@ -486,7 +472,7 @@ export function DataTable({
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div> */}
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            Total: {table.getFilteredRowModel().rows.length} permintaan
+            Total: {table.getFilteredRowModel().rows.length} berita acara
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">

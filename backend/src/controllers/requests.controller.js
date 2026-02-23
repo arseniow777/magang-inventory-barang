@@ -1,7 +1,10 @@
 import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/audit.js";
-import { generateRequestCode, generateReportNumber } from "../utils/smartCode.js";
+import {
+  generateRequestCode,
+  generateReportNumber,
+} from "../utils/smartCode.js";
 import { generateOfficialReport } from "../utils/pdfGenerator.js";
 import { sendTelegramMessage } from "../utils/telegramBot.js";
 
@@ -13,13 +16,16 @@ export const createRequest = async (req, res, next) => {
       return sendError(res, "Request type, reason, dan items wajib diisi", 400);
     }
 
-    if ((request_type === 'borrow' || request_type === 'transfer') && !destination_location_id) {
+    if (
+      (request_type === "borrow" || request_type === "transfer") &&
+      !destination_location_id
+    ) {
       return sendError(res, "Lokasi tujuan wajib untuk borrow/transfer", 400);
     }
 
     if (destination_location_id) {
       const location = await prisma.locations.findUnique({
-        where: { id: parseInt(destination_location_id) }
+        where: { id: parseInt(destination_location_id) },
       });
       if (!location) {
         return sendError(res, "Lokasi tujuan tidak ditemukan", 404);
@@ -29,60 +35,76 @@ export const createRequest = async (req, res, next) => {
     const selectedUnits = [];
 
     for (const item of items) {
-        if (item.unit_id) {
-            const unit = await prisma.itemUnits.findUnique({
-            where: { id: parseInt(item.unit_id) }
-            });
+      if (item.unit_id) {
+        const unit = await prisma.itemUnits.findUnique({
+          where: { id: parseInt(item.unit_id) },
+        });
 
-            if (!unit) {
-            return sendError(res, `Unit ID ${item.unit_id} tidak ditemukan`, 404);
-            }
-
-            if (unit.status !== 'available') {
-            return sendError(res, `Unit ${unit.unit_code} tidak tersedia (status: ${unit.status})`, 400);
-            }
-
-            // TAMBAH VALIDASI INI:
-            const pendingRequest = await prisma.requestItems.findFirst({
-            where: {
-                unit_id: parseInt(item.unit_id),
-                request: {
-                status: 'pending'
-                }
-            }
-            });
-
-            if (pendingRequest) {
-            return sendError(res, `Unit ${unit.unit_code} sedang menunggu approval`, 400);
-            }
-
-            selectedUnits.push(unit.id);
-        } else if (item.item_id && item.quantity) {
-            const pendingUnitIds = await prisma.requestItems.findMany({
-            where: {
-                request: { status: 'pending' },
-                unit: { item_id: parseInt(item.item_id) }
-            },
-            select: { unit_id: true }
-            });
-
-            const availableUnits = await prisma.itemUnits.findMany({
-            where: {
-                item_id: parseInt(item.item_id),
-                status: 'available',
-                id: { notIn: pendingUnitIds.map(p => p.unit_id) }
-            },
-            take: parseInt(item.quantity)
-            });
-
-            if (availableUnits.length < parseInt(item.quantity)) {
-            return sendError(res, `Hanya ${availableUnits.length} unit tersedia untuk item ID ${item.item_id}`, 400);
-            }
-
-            selectedUnits.push(...availableUnits.map(u => u.id));
-        } else {
-            return sendError(res, "Setiap item harus punya unit_id atau (item_id + quantity)", 400);
+        if (!unit) {
+          return sendError(res, `Unit ID ${item.unit_id} tidak ditemukan`, 404);
         }
+
+        if (unit.status !== "available") {
+          return sendError(
+            res,
+            `Unit ${unit.unit_code} tidak tersedia (status: ${unit.status})`,
+            400,
+          );
+        }
+
+        // TAMBAH VALIDASI INI:
+        const pendingRequest = await prisma.requestItems.findFirst({
+          where: {
+            unit_id: parseInt(item.unit_id),
+            request: {
+              status: "pending",
+            },
+          },
+        });
+
+        if (pendingRequest) {
+          return sendError(
+            res,
+            `Unit ${unit.unit_code} sedang menunggu approval`,
+            400,
+          );
+        }
+
+        selectedUnits.push(unit.id);
+      } else if (item.item_id && item.quantity) {
+        const pendingUnitIds = await prisma.requestItems.findMany({
+          where: {
+            request: { status: "pending" },
+            unit: { item_id: parseInt(item.item_id) },
+          },
+          select: { unit_id: true },
+        });
+
+        const availableUnits = await prisma.itemUnits.findMany({
+          where: {
+            item_id: parseInt(item.item_id),
+            status: "available",
+            id: { notIn: pendingUnitIds.map((p) => p.unit_id) },
+          },
+          take: parseInt(item.quantity),
+        });
+
+        if (availableUnits.length < parseInt(item.quantity)) {
+          return sendError(
+            res,
+            `Hanya ${availableUnits.length} unit tersedia untuk item ID ${item.item_id}`,
+            400,
+          );
+        }
+
+        selectedUnits.push(...availableUnits.map((u) => u.id));
+      } else {
+        return sendError(
+          res,
+          "Setiap item harus punya unit_id atau (item_id + quantity)",
+          400,
+        );
+      }
     }
 
     const request_code = await generateRequestCode();
@@ -92,14 +114,16 @@ export const createRequest = async (req, res, next) => {
         request_code,
         request_type,
         reason,
-        destination_location_id: destination_location_id ? parseInt(destination_location_id) : null,
+        destination_location_id: destination_location_id
+          ? parseInt(destination_location_id)
+          : null,
         pic_id: req.user.id,
         request_items: {
-          create: selectedUnits.map(unit_id => ({ unit_id }))
-        }
+          create: selectedUnits.map((unit_id) => ({ unit_id })),
+        },
       },
       include: {
-        pic:{
+        pic: {
           select: {
             id: true,
             username: true,
@@ -107,7 +131,7 @@ export const createRequest = async (req, res, next) => {
             role: true,
             telegram_id: true,
             employee_id: true,
-          }
+          },
         },
         destination_location: true,
         request_items: {
@@ -115,12 +139,12 @@ export const createRequest = async (req, res, next) => {
             unit: {
               include: {
                 item: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     await createAuditLog({
@@ -133,18 +157,18 @@ export const createRequest = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
-    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+    const admins = await prisma.users.findMany({ where: { role: "admin" } });
 
     await Promise.all(
-      admins.map(admin =>
+      admins.map((admin) =>
         prisma.notifications.create({
           data: {
             user_id: admin.id,
             message: `${req.user.username} membuat request ${request_code} (${request_type})`,
-            type: 'request'
-          }
-        })
-      )
+            type: "request",
+          },
+        }),
+      ),
     );
 
     return sendSuccess(res, "Request berhasil dibuat", request, 201);
@@ -169,10 +193,10 @@ export const getRequests = async (req, res, next) => {
         admin: true,
         destination_location: true,
         _count: {
-          select: { request_items: true }
-        }
+          select: { request_items: true },
+        },
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: "desc" },
     });
 
     return sendSuccess(res, "Data requests berhasil diambil", requests);
@@ -196,14 +220,14 @@ export const getRequestById = async (req, res, next) => {
             unit: {
               include: {
                 item: {
-                  include: { photos: true }
+                  include: { photos: true },
                 },
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!request) {
@@ -224,10 +248,10 @@ export const getMyRequests = async (req, res, next) => {
         admin: true,
         destination_location: true,
         _count: {
-          select: { request_items: true }
-        }
+          select: { request_items: true },
+        },
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: "desc" },
     });
 
     return sendSuccess(res, "Data my requests berhasil diambil", requests);
@@ -239,15 +263,15 @@ export const getMyRequests = async (req, res, next) => {
 export const getPendingRequests = async (req, res, next) => {
   try {
     const requests = await prisma.requests.findMany({
-      where: { status: 'pending' },
+      where: { status: "pending" },
       include: {
         pic: true,
         destination_location: true,
         _count: {
-          select: { request_items: true }
-        }
+          select: { request_items: true },
+        },
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: "desc" },
     });
 
     return sendSuccess(res, "Data pending requests berhasil diambil", requests);
@@ -267,30 +291,30 @@ export const approveRequest = async (req, res, next) => {
         request_items: {
           include: {
             unit: {
-              include: { 
+              include: {
                 item: true,
-                location: true 
-              }
-            }
-          }
+                location: true,
+              },
+            },
+          },
         },
-        destination_location: true
-      }
+        destination_location: true,
+      },
     });
 
     if (!request) {
       return sendError(res, "Request tidak ditemukan", 404);
     }
 
-    if (request.status !== 'pending') {
+    if (request.status !== "pending") {
       return sendError(res, `Request sudah ${request.status}`, 400);
     }
 
     const statusMap = {
-      borrow: 'borrowed',
-      transfer: 'transferred',
-      sell: 'sold',
-      demolish: 'demolished'
+      borrow: "borrowed",
+      transfer: "transferred",
+      sell: "sold",
+      demolish: "demolished",
     };
 
     const newStatus = statusMap[request.request_type];
@@ -301,20 +325,23 @@ export const approveRequest = async (req, res, next) => {
         data: {
           status: newStatus,
           ...(request.destination_location_id && {
-            location_id: request.destination_location_id
-          })
-        }
+            location_id: request.destination_location_id,
+          }),
+        },
       });
 
-      if (request.request_type === 'borrow' || request.request_type === 'transfer') {
+      if (
+        request.request_type === "borrow" ||
+        request.request_type === "transfer"
+      ) {
         await prisma.itemLogHistory.create({
           data: {
             unit_id: requestItem.unit_id,
             from_location_id: requestItem.unit.location_id,
             to_location_id: request.destination_location_id,
             request_id: request.id,
-            moved_by_id: req.user.id
-          }
+            moved_by_id: req.user.id,
+          },
         });
       }
     }
@@ -322,9 +349,9 @@ export const approveRequest = async (req, res, next) => {
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: 'approved',
+        status: "approved",
         approved_at: new Date(),
-        admin_id: req.user.id
+        admin_id: req.user.id,
       },
       include: {
         pic: true,
@@ -335,12 +362,12 @@ export const approveRequest = async (req, res, next) => {
             unit: {
               include: {
                 item: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     const reportNumber = await generateReportNumber();
@@ -355,8 +382,8 @@ export const approveRequest = async (req, res, next) => {
         issued_by_id: req.user.id,
         is_approved: true,
         approved_by_id: req.user.id,
-        approved_at: new Date()
-      }
+        approved_at: new Date(),
+      },
     });
 
     await createAuditLog({
@@ -373,15 +400,15 @@ export const approveRequest = async (req, res, next) => {
       data: {
         user_id: updatedRequest.pic_id,
         message: `Request ${updatedRequest.request_code} telah disetujui. Berita acara dapat diunduh.`,
-        type: 'report'
-      }
+        type: "report",
+      },
     });
 
     if (updatedRequest.pic.telegram_id) {
-      const webUrl = process.env.WEB_URL || 'https://your-website.com';
+      const webUrl = process.env.WEB_URL || "https://masnando.com";
       await sendTelegramMessage(
         updatedRequest.pic.telegram_id,
-        `✅ Request ${updatedRequest.request_code} telah disetujui!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 Silakan unduh dokumen melalui website kami:\n${webUrl}/reports`
+        `✅ Request ${updatedRequest.request_code} telah disetujui!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 Silakan unduh dokumen melalui website kami:\n${webUrl}/reports`,
       );
     }
 
@@ -402,26 +429,26 @@ export const rejectRequest = async (req, res, next) => {
         request_items: {
           include: {
             unit: {
-              include: { item: true }
-            }
-          }
-        }
-      }
+              include: { item: true },
+            },
+          },
+        },
+      },
     });
 
     if (!request) {
       return sendError(res, "Request tidak ditemukan", 404);
     }
 
-    if (request.status !== 'pending') {
+    if (request.status !== "pending") {
       return sendError(res, `Request sudah ${request.status}`, 400);
     }
 
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: 'rejected',
-        admin_id: req.user.id
+        status: "rejected",
+        admin_id: req.user.id,
       },
       include: {
         pic: true,
@@ -432,12 +459,12 @@ export const rejectRequest = async (req, res, next) => {
             unit: {
               include: {
                 item: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     await createAuditLog({
@@ -454,14 +481,14 @@ export const rejectRequest = async (req, res, next) => {
       data: {
         user_id: request.pic_id,
         message: `Request ${request.request_code} ditolak`,
-        type: 'request'
-      }
+        type: "request",
+      },
     });
 
     if (updatedRequest.pic.telegram_id) {
       await sendTelegramMessage(
         updatedRequest.pic.telegram_id,
-        `❌ Request ${request.request_code} ditolak oleh admin`
+        `❌ Request ${request.request_code} ditolak oleh admin`,
       );
     }
 
@@ -486,22 +513,22 @@ export const returnRequest = async (req, res, next) => {
         request_items: {
           include: {
             unit: {
-              include: { location: true }
-            }
-          }
-        }
-      }
+              include: { location: true },
+            },
+          },
+        },
+      },
     });
 
     if (!request) {
       return sendError(res, "Request tidak ditemukan", 404);
     }
 
-    if (request.request_type !== 'borrow') {
+    if (request.request_type !== "borrow") {
       return sendError(res, "Hanya request borrow yang bisa direturn", 400);
     }
 
-    if (request.status !== 'approved') {
+    if (request.status !== "approved") {
       return sendError(res, "Request belum approved", 400);
     }
 
@@ -510,7 +537,7 @@ export const returnRequest = async (req, res, next) => {
     }
 
     const location = await prisma.locations.findUnique({
-      where: { id: parseInt(return_location_id) }
+      where: { id: parseInt(return_location_id) },
     });
 
     if (!location) {
@@ -521,9 +548,9 @@ export const returnRequest = async (req, res, next) => {
       await prisma.itemUnits.update({
         where: { id: requestItem.unit_id },
         data: {
-          status: 'available',
-          location_id: parseInt(return_location_id)
-        }
+          status: "available",
+          location_id: parseInt(return_location_id),
+        },
       });
 
       await prisma.itemLogHistory.create({
@@ -532,18 +559,18 @@ export const returnRequest = async (req, res, next) => {
           from_location_id: requestItem.unit.location_id,
           to_location_id: parseInt(return_location_id),
           request_id: request.id,
-          moved_by_id: req.user.id
-        }
+          moved_by_id: req.user.id,
+        },
       });
     }
 
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: 'completed',
+        status: "completed",
         returned_at: new Date(),
         return_location_id: parseInt(return_location_id),
-        returned_by_id: req.user.id
+        returned_by_id: req.user.id,
       },
       include: {
         pic: true,
@@ -556,12 +583,12 @@ export const returnRequest = async (req, res, next) => {
             unit: {
               include: {
                 item: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     await createAuditLog({
@@ -574,18 +601,18 @@ export const returnRequest = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
-    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+    const admins = await prisma.users.findMany({ where: { role: "admin" } });
 
     await Promise.all(
-      admins.map(admin =>
+      admins.map((admin) =>
         prisma.notifications.create({
           data: {
             user_id: admin.id,
             message: `${req.user.username} mengembalikan barang dari request ${request.request_code}`,
-            type: 'request'
-          }
-        })
-      )
+            type: "request",
+          },
+        }),
+      ),
     );
 
     return sendSuccess(res, "Barang berhasil direturn", updatedRequest);
@@ -611,14 +638,14 @@ export const getMyRequestById = async (req, res, next) => {
             unit: {
               include: {
                 item: {
-                  include: { photos: true }
+                  include: { photos: true },
                 },
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!request) {
@@ -645,10 +672,10 @@ export const cancelRequest = async (req, res, next) => {
         pic: true,
         request_items: {
           include: {
-            unit: true
-          }
-        }
-      }
+            unit: true,
+          },
+        },
+      },
     });
 
     if (!request) {
@@ -659,14 +686,18 @@ export const cancelRequest = async (req, res, next) => {
       return sendError(res, "Anda tidak bisa cancel request orang lain", 403);
     }
 
-    if (request.status !== 'pending') {
-      return sendError(res, `Request sudah ${request.status}, tidak bisa dicancel`, 400);
+    if (request.status !== "pending") {
+      return sendError(
+        res,
+        `Request sudah ${request.status}, tidak bisa dicancel`,
+        400,
+      );
     }
 
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: 'rejected'
+        status: "rejected",
       },
       include: {
         pic: true,
@@ -676,12 +707,12 @@ export const cancelRequest = async (req, res, next) => {
             unit: {
               include: {
                 item: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     await createAuditLog({

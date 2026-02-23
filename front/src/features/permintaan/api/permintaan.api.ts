@@ -1,30 +1,36 @@
 import { apiClient } from "@/lib/api";
 import type { RequestData } from "../types/permintaan.types";
 
-// TODO: Implement actual API calls when backend is ready
 export const permintaanAPI = {
   // Get all requests
-  getRequests: () => apiClient.get<RequestData[]>("/requests"),
+  getRequests: (params?: {
+    status?: string;
+    request_type?: string;
+    pic_id?: number;
+  }) => {
+    const query = params
+      ? "?" +
+        new URLSearchParams(
+          Object.entries(params)
+            .filter(([, v]) => v !== undefined)
+            .map(([k, v]) => [k, String(v)]),
+        ).toString()
+      : "";
+    return apiClient.get<RequestData[]>(`/requests${query}`);
+  },
 
   // Get single request
   getRequest: (id: number) => apiClient.get<RequestData>(`/requests/${id}`),
 
-  // Create new request
-  createRequest: (data: Omit<RequestData, "id">) =>
-    apiClient.post<RequestData>("/requests", data),
-
-  // Update existing request
-  updateRequest: (id: number, data: Partial<RequestData>) =>
-    apiClient.put<RequestData>(`/requests/${id}`, data),
-
-  // Delete request
-  deleteRequest: (id: number) => apiClient.delete<void>(`/requests/${id}`),
-
-  // Approve request
+  // Approve request (admin)
   approveRequest: (id: number) =>
-    apiClient.post<RequestData>(`/requests/${id}/approve`),
+    apiClient.put<RequestData>(`/requests/${id}/approve`, {}),
 
-  // Reject request
-  rejectRequest: (id: number, reason?: string) =>
-    apiClient.post<RequestData>(`/requests/${id}/reject`, { reason }),
+  // Reject request (admin)
+  rejectRequest: (id: number) =>
+    apiClient.put<RequestData>(`/requests/${id}/reject`, {}),
+
+  // Cancel request
+  cancelRequest: (id: number) =>
+    apiClient.put<RequestData>(`/requests/${id}/cancel`, {}),
 };

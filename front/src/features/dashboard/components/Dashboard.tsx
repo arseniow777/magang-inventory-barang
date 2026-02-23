@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { IconSun, IconMoon } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
-import CreatePage from "../../createbarang/pages/CreatePage";
+import CreatePage from "../../barang/pages/CreatePage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
 import PermintaanPage from "../../permintaan/pages/PermintaanPage";
 import BeritaPage from "../../berita/pages/BeritaPage";
@@ -28,20 +28,41 @@ import LokasiPage from "../../lokasi/pages/LokasiPage";
 import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
 import ProfilPage from "../../akun/pages/ProfilPage";
 
-const placeholders: { [key: string]: string } = {
-  "/dashboard": "Beranda",
-  "/dashboard/barang": "Barang",
-  "/dashboard/permintaan": "Daftar permintaan",
-  "/dashboard/berita": "Berita acara",
-  "/dashboard/lokasi": "Lokasi",
-  "/dashboard/pengguna": "Pengguna",
-  "/dashboard/users/notification": "Notifikasi",
+const segmentLabels: { [key: string]: string } = {
+  dashboard: "Dashboard",
+  barang: "Barang",
+  create: "Tambah Barang",
+  permintaan: "Daftar Permintaan",
+  berita: "Berita Acara",
+  lokasi: "Lokasi",
+  pengguna: "Pengguna",
+  audit: "Audit",
+  users: "Users",
+  notification: "Notifikasi",
 };
 
 export default function Dashboard() {
   const [isDark, setIsDark] = useState(false);
   const location = useLocation();
-  const currentPage = placeholders[location.pathname] || "Dashboard";
+
+  const getBreadcrumbs = () => {
+    const segments = location.pathname.split("/").filter(Boolean);
+    const breadcrumbs = [];
+    let path = "";
+
+    for (let i = 0; i < segments.length; i++) {
+      path += `/${segments[i]}`;
+      breadcrumbs.push({
+        label: segmentLabels[segments[i]] || segments[i],
+        path: path,
+        isLast: i === segments.length - 1,
+      });
+    }
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -80,13 +101,20 @@ export default function Dashboard() {
             />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{currentPage}</BreadcrumbPage>
-                </BreadcrumbItem>
+                {breadcrumbs.map((crumb, index) => (
+                  <Fragment key={crumb.path}>
+                    {index > 0 && <BreadcrumbSeparator />}
+                    <BreadcrumbItem>
+                      {crumb.isLast ? (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={crumb.path}>
+                          {crumb.label}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </Fragment>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

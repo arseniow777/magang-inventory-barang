@@ -1,58 +1,89 @@
-# Permintaan Feature
+# Lokasi Feature
 
-This feature handles requests and borrowing of items.
+This feature handles location management for item storage.
 
 ## Structure
 
 ```
-permintaan/
+lokasi/
 ├── api/
-│   └── permintaan.api.ts      # API client functions (ready for backend)
+│   └── lokasi.api.ts          # API client functions (connected to backend)
 ├── components/
 │   └── data-table.tsx         # Reusable data table component
 ├── data/
-│   └── dummy-data.ts          # Dummy data for development
+│   └── dummy-data.ts          # Legacy dummy data (not used)
 ├── hooks/
-│   └── usePermintaanData.ts   # Hook to fetch data
+│   └── usePermintaanData.ts   # TanStack Query hooks for locations
 ├── pages/
-│   └── PermintaanPage.tsx     # Main page component
+│   └── LokasiPage.tsx         # Main page component
 └── types/
-    └── permintaan.types.ts    # TypeScript types
+    ├── lokasi.types.ts        # TypeScript types for locations
+    └── permintaan.types.ts    # Legacy types (kept for compatibility)
 ```
 
 ## Current Status
 
 ✅ **Working Features:**
-- Basic table display with dummy data
-- Pagination
+
+- Real-time data fetching from backend API using TanStack Query
+- Table display with pagination
 - Column visibility toggle
-- Status badges
-- Actions dropdown menu
-- Sorting
-- Filtering
+- Actions dropdown menu (Edit, View Details)
+- Sorting and filtering
+- Error handling
+- Loading states
+- Automatic cache management (5 min stale time)
 
-⏸️ **Features Commented Out (requires package installation):**
-- Drag & drop row reordering (`@dnd-kit/core`, `@dnd-kit/sortable`)
-- Row selection with checkboxes (`@/components/ui/checkbox`)
-- Toast notifications (`sonner`)
-- Detail drawer viewer (`@/components/ui/drawer`)
-- Charts display (`recharts`, `@/components/ui/chart`)
+✅ **API Integration:**
 
-## Using Dummy Data (Current)
+- `useLokasiData()` - Fetch all locations
+- `useLokasi(id)` - Fetch single location
+- `useCreateLokasi()` - Create new location
+- `useUpdateLokasi()` - Update existing location
+- `useDeleteLokasi()` - Delete location
 
-Currently, the feature uses dummy data defined in `data/dummy-data.ts`. This allows development without a backend.
+## Data Structure
 
-## Switching to Real API
+```typescript
+interface LocationData {
+  id: number;
+  location_code: string; // e.g., "ged-1" (generated from building name + floor)
+  building_name: string; // e.g., "Gedung A"
+  floor: number; // e.g., 1, 2, 3
+  address: string; // Full address
+}
+```
 
-When the backend is ready, follow these steps:
+## Usage Example
 
-### 1. Update the hook in `hooks/usePermintaanData.ts`:
+```tsx
+import { useLokasiData } from "../hooks/usePermintaanData";
+
+function MyComponent() {
+  const { data: locations = [], isLoading, error } = useLokasiData();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading locations</div>;
+
+  return <DataTable data={locations} />;
+}
+```
+
+## Backend Integration
+
+The feature is connected to:
+
+- **Endpoint**: `/api/v1/locations`
+- **Authentication**: Required (Bearer token)
+- **Permissions**:
+  - GET operations: All authenticated users
+  - POST/PUT/DELETE: Admin only
 
 ```typescript
 export function usePermintaanData() {
   // COMMENT OUT the dummy data implementation
   // and UNCOMMENT the real API implementation:
-  
+
   return useQuery({
     queryKey: ["permintaan"],
     queryFn: () => permintaanAPI.getRequests(),
@@ -86,6 +117,7 @@ npm install recharts
 ```
 
 Then, in `components/data-table.tsx`:
+
 1. Uncomment the imports at the top
 2. Uncomment the drag handle component
 3. Uncomment the select column
@@ -94,6 +126,7 @@ Then, in `components/data-table.tsx`:
 6. Replace regular Table with DndContext wrapper
 
 Also create missing UI components:
+
 - `@/components/ui/checkbox`
 - `@/components/ui/drawer`
 - `@/components/ui/chart`
@@ -111,4 +144,3 @@ Also create missing UI components:
 ## Access
 
 The page is accessible at `/dashboard/permintaan`
-

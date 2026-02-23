@@ -44,65 +44,68 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
     : defaultUser;
 
-  const data = {
-    user: userData,
-    umum: [
-      {
-        name: "Beranda",
-        url: "/dashboard",
-        icon: <IconLayoutGrid />,
-      },
-      {
-        name: "Barang",
-        url: "/dashboard/barang",
-        icon: <IconBox />,
-      },
-    ],
-    administratif: [
-      {
-        name: "Daftar permintaan",
-        url: "/dashboard/permintaan",
-        icon: <IconMailbox />,
-      },
-      {
-        name: "Berita acara",
-        url: "/dashboard/berita",
-        icon: <IconFileDescription />,
-      },
-      {
-        name: "Lokasi",
-        url: "/dashboard/lokasi",
-        icon: <IconBuildingCommunity />,
-      },
-      {
-        name: "Pengguna",
-        url: "/dashboard/pengguna",
-        icon: <IconUsersGroup />,
-      },
-    ],
-    secondary: [
-      {
-        title: "Cari cepat",
-        url: "#",
-        icon: <IconSearch />,
-      },
-      {
-        title: "Audit log",
-        url: "/dashboard/audit",
-        icon: <IconHistory />,
-      },
-      {
-        title: "Bantuan",
-        url: "#",
-        icon: <IconHelp />,
-      },
-      {
-        title: "Tambahkan data",
-        url: "#",
-        icon: <IconCirclePlus />,
-      },
-    ],
-  };
+  const data = React.useMemo(
+    () => ({
+      user: userData,
+      umum: [
+        {
+          name: "Beranda",
+          url: "/dashboard",
+          icon: <IconLayoutGrid />,
+        },
+        {
+          name: "Barang",
+          url: "/dashboard/barang",
+          icon: <IconBox />,
+        },
+      ],
+      administratif: [
+        {
+          name: "Daftar permintaan",
+          url: "/dashboard/permintaan",
+          icon: <IconMailbox />,
+        },
+        {
+          name: "Berita acara",
+          url: "/dashboard/berita",
+          icon: <IconFileDescription />,
+        },
+        {
+          name: "Lokasi",
+          url: "/dashboard/lokasi",
+          icon: <IconBuildingCommunity />,
+        },
+        {
+          name: "Pengguna",
+          url: "/dashboard/pengguna",
+          icon: <IconUsersGroup />,
+        },
+      ],
+      secondary: [
+        {
+          title: "Cari cepat",
+          url: "#",
+          icon: <IconSearch />,
+        },
+        {
+          title: "Audit log",
+          url: "/dashboard/audit",
+          icon: <IconHistory />,
+        },
+        {
+          title: "Bantuan",
+          url: "#",
+          icon: <IconHelp />,
+        },
+        {
+          title: "Tambahkan data",
+          url: "#",
+          icon: <IconCirclePlus />,
+        },
+      ],
+    }),
+    [userData],
+  );
 
   return (
     <Sidebar collapsible="icon" {...props}>

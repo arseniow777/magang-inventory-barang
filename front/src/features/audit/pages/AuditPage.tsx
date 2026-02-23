@@ -1,16 +1,17 @@
 import { DataTable } from "../components/data-table";
-import { usePermintaanData } from "../hooks/usePermintaanData";
+import { useAuditData } from "../hooks/useAuditData";
 
 export default function AuditPage() {
-  const { data: requests = [], isLoading } = usePermintaanData();
+  const { data, isLoading } = useAuditData();
+  const logs = data?.logs ?? [];
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Permintaan & Peminjaman</h1>
+          <h1 className="text-2xl font-bold">Audit Log</h1>
           <p className="text-muted-foreground text-sm">
-            Kelola permintaan barang dan peminjaman aset
+            Riwayat semua aktivitas dalam sistem
           </p>
         </div>
       </div>
@@ -20,7 +21,7 @@ export default function AuditPage() {
           <p>Memuat data...</p>
         </div>
       ) : (
-        <DataTable data={requests} />
+        <DataTable data={logs} />
       )}
     </div>
   );

@@ -105,16 +105,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  location_code: z.string(),
+  building_name: z.string(),
+  floor: z.number(),
+  address: z.string(),
 });
 
 // Drag handle - commented out until @dnd-kit is installed
@@ -172,64 +169,39 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   //   enableHiding: false,
   // },
   {
-    accessorKey: "header",
-    header: "Nama Barang",
+    accessorKey: "location_code",
+    header: "Kode Lokasi",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.original.header}</div>;
+      return <div className="font-medium">{row.original.location_code}</div>;
     },
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Tipe Permintaan",
+    accessorKey: "building_name",
+    header: "Nama Gedung",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
+      <div className="font-medium">{row.original.building_name}</div>
+    ),
+  },
+  {
+    accessorKey: "floor",
+    header: "Lantai",
+    cell: ({ row }) => (
+      <div className="text-center">
+        <Badge variant="outline" className="text-muted-foreground px-2">
+          Lantai {row.original.floor}
         </Badge>
       </div>
     ),
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "address",
+    header: "Alamat",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
-        {row.original.status}
-      </Badge>
+      <div className="max-w-xs truncate" title={row.original.address}>
+        {row.original.address}
+      </div>
     ),
-  },
-  {
-    accessorKey: "target",
-    header: "Target",
-    cell: ({ row }) => <div>{row.original.target}</div>,
-  },
-  {
-    accessorKey: "limit",
-    header: "Batas Waktu",
-    cell: ({ row }) => <div>{row.original.limit}</div>,
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-
-      return (
-        <span className="text-muted-foreground text-sm italic">
-          Belum ditugaskan
-        </span>
-      );
-    },
   },
   {
     id: "actions",
@@ -247,7 +219,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
           <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
+          <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
           <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Delete</DropdownMenuItem>
@@ -352,39 +324,8 @@ export function DataTable({
   // }
 
   return (
-    <Tabs
-      defaultValue="outline"
-      className="w-full flex-col justify-start gap-6"
-    >
+    <div className="w-full flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Label htmlFor="view-selector" className="sr-only">
-          View
-        </Label>
-        <Select defaultValue="outline">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
-          </SelectContent>
-        </Select>
-        <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
-        </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger>
@@ -419,16 +360,9 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
         </div>
       </div>
-      <TabsContent
-        value="outline"
-        className="relative flex flex-col gap-4 overflow-auto"
-      >
+      <div className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted sticky top-0 z-10">
@@ -472,7 +406,7 @@ export function DataTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    Tidak ada data lokasi.
                   </TableCell>
                 </TableRow>
               )}
@@ -480,13 +414,8 @@ export function DataTable({
           </Table>
         </div>
         <div className="flex items-center justify-between px-4">
-          {/* Row selection display - commented out until Checkbox is implemented */}
-          {/* <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div> */}
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            Total: {table.getFilteredRowModel().rows.length} permintaan
+            Total: {table.getFilteredRowModel().rows.length} lokasi
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
@@ -560,29 +489,8 @@ export function DataTable({
             </div>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }
 
