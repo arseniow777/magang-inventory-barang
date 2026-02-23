@@ -35,7 +35,7 @@ export function CreateItemForm() {
     quantity: 0,
     category: "",
     procurement_year: "",
-    condition: "good",
+    condition: "",
     location_id: "",
     pic_id: "",
   });
@@ -57,7 +57,7 @@ export function CreateItemForm() {
       quantity: 0,
       category: "",
       procurement_year: "",
-      condition: "good",
+      condition: "",
       location_id: "",
       pic_id: "",
     });

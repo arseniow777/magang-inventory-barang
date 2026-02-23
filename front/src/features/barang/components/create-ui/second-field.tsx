@@ -31,13 +31,7 @@ interface SecondFieldProps {
   onFieldChange: (field: string, value: string | number) => void;
 }
 
-const categories = [
-  "Furniture",
-  "Electronics",
-  "Office Equipment",
-  "Vehicles",
-  "Other",
-];
+const categories = ["Perabotan", "Elektronik", "Operasional"];
 
 const years = [
   { label: "YYYY", value: "" },
@@ -50,7 +44,9 @@ const years = [
 ];
 
 const conditions = [
+  { label: "Baru", value: "new" },
   { label: "Baik", value: "good" },
+  { label: "Terpakai", value: "used" },
   { label: "Rusak", value: "damaged" },
   { label: "Tidak berfungsi", value: "broken" },
 ];
