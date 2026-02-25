@@ -29,6 +29,7 @@ import PenggunaPage from "../../pengguna/pages/PenggunaPage";
 import LokasiPage from "../../lokasi/pages/LokasiPage";
 import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
 import ProfilPage from "../../akun/pages/ProfilPage";
+import TambahPenggunaPage from "@/features/pengguna/pages/TambahPenggunaPage";
 
 const segmentLabels: { [key: string]: string } = {
   dashboard: "Dashboard",
@@ -158,6 +159,10 @@ export default function Dashboard() {
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/users/notifikasi" element={<NotificationsPage />} />
             <Route path="/users/profil" element={<ProfilPage />} />
+            <Route
+              path="/pengguna/tambahPengguna"
+              element={<TambahPenggunaPage />}
+            />
             <Route
               path="/*"
               element={

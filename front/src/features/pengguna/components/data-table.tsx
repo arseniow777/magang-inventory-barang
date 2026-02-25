@@ -53,6 +53,7 @@ import {
 // Toast - commented out until sonner is installed
 // import { toast } from "sonner";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 
 // import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
@@ -356,6 +357,8 @@ export function DataTable({
   //   }
   // }
 
+  const navigate = useNavigate();
+
   return (
     <Tabs
       defaultValue="outline"
@@ -424,9 +427,13 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/dashboard/pengguna/tambahPengguna")}
+          >
             <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
+            <span className="hidden lg:inline">Tambah Pengguna</span>
           </Button>
         </div>
       </div>
