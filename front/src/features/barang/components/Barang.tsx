@@ -3,13 +3,24 @@ import { Button } from "@/components/ui/button";
 import { ItemsGrid } from "./items-grid";
 import { useBarangItems } from "../hooks/useBarangItems";
 import { useBarangFilter } from "../hooks/useBarangFilter";
-import { IconPlus } from "@tabler/icons-react";
+import { IconDatabasePlus } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
+import { ButtonGroupInput } from "./group-button";
 
 export function Barang() {
   const { data: items = [], isLoading, error } = useBarangItems();
-  const { categories, filteredItems, activeCategory, handleCategoryChange } =
-    useBarangFilter(items);
+  const {
+    categories,
+    filteredItems,
+    activeCategory,
+    handleCategoryChange,
+    search,
+    setSearch,
+    sortField,
+    setSortField,
+    sortDir,
+    setSortDir,
+  } = useBarangFilter(items);
 
   const navigate = useNavigate();
   const handleCreate = () => {
@@ -32,21 +43,33 @@ export function Barang() {
         {/* Header with title and button */}
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold">Data Barang</h2>
-          <Button className="gap-2" onClick={handleCreate}>
-            <IconPlus className="h-4 w-4" />
-            Tambah Barang
-          </Button>
         </div>
 
         {/* Category Tabs */}
-        <div className="mb-6 border-b w-full">
+        <div className="mb-2 w-full flex justify-between gap-4">
           <TabsLine
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategoryChange={handleCategoryChange}
+            tabs={[
+              { value: "all", label: "Semua" },
+              ...categories.map((c) => ({ value: c, label: c })),
+            ]}
+            activeTab={activeCategory}
+            onTabChange={handleCategoryChange}
           />
+          <div className="flex gap-2">
+            <ButtonGroupInput
+              search={search}
+              onSearchChange={setSearch}
+              sortField={sortField}
+              onSortFieldChange={setSortField}
+              sortDir={sortDir}
+              onSortDirChange={setSortDir}
+            />
+            <Button className="gap-2" onClick={handleCreate}>
+              <IconDatabasePlus className="h-4 w-4" />
+              <p className="hidden lg:block">Tambah Barang</p>
+            </Button>
+          </div>
         </div>
-
         {/* Items Grid */}
         <ItemsGrid items={filteredItems} isLoading={isLoading} />
       </div>

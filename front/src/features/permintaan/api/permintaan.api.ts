@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api";
-import type { RequestData } from "../types/permintaan.types";
+import type { RequestData, RequestDetailData } from "../types/permintaan.types";
 
 export const permintaanAPI = {
   // Get all requests
@@ -19,8 +19,9 @@ export const permintaanAPI = {
     return apiClient.get<RequestData[]>(`/requests${query}`);
   },
 
-  // Get single request
-  getRequest: (id: number) => apiClient.get<RequestData>(`/requests/${id}`),
+  // Get single request (with full items)
+  getRequest: (id: number) =>
+    apiClient.get<RequestDetailData>(`/requests/${id}`),
 
   // Approve request (admin)
   approveRequest: (id: number) =>

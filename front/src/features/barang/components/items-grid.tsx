@@ -16,7 +16,7 @@ export function ItemsGrid({ items, isLoading }: ItemsGridProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
       {items.length > 0 ? (
         items.map((item) => <ItemsCard key={item.id} item={item} />)
       ) : (

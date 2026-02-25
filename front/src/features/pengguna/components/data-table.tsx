@@ -158,6 +158,25 @@ const formatDate = (dateString: string) =>
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
+    id: "no",
+    size: 48,
+    header: () => (
+      <div className="w-10 text-center text-xs font-medium">No.</div>
+    ),
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination;
+      const rows = table.getRowModel().rows;
+      const visualIndex = rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="w-10 text-center text-muted-foreground text-sm">
+          {pageIndex * pageSize + visualIndex + 1}
+        </div>
+      );
+    },
+    enableHiding: false,
+    enableSorting: false,
+  },
+  {
     accessorKey: "employee_id",
     header: "ID Karyawan",
     cell: ({ row }) => (

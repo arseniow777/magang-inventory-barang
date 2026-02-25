@@ -27,12 +27,9 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
-  IconPlus,
   // IconTrendingUp,
 } from "@tabler/icons-react";
 import {
@@ -168,6 +165,25 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   //   enableSorting: false,
   //   enableHiding: false,
   // },
+  {
+    id: "no",
+    size: 12,
+    header: () => (
+      <div className="w-10 text-center text-xs font-medium">No.</div>
+    ),
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination;
+      const rows = table.getRowModel().rows;
+      const visualIndex = rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="w-10 text-center text-muted-foreground text-sm">
+          {pageIndex * pageSize + visualIndex + 1}
+        </div>
+      );
+    },
+    enableHiding: false,
+    enableSorting: false,
+  },
   {
     accessorKey: "location_code",
     header: "Kode Lokasi",

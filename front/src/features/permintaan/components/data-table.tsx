@@ -22,6 +22,9 @@ import * as React from "react";
 // } from "@dnd-kit/sortable";
 // import { CSS } from "@dnd-kit/utilities";
 import {
+  IconArrowDown,
+  IconArrowUp,
+  IconArrowsUpDown,
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
@@ -30,7 +33,8 @@ import {
   IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
-  IconPlus,
+  // IconPlus,
+  IconSearch,
   // IconTrendingUp,
 } from "@tabler/icons-react";
 import {
@@ -85,7 +89,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -103,7 +107,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Tabs removed - status filter is now inline pill buttons
 
 export const schema = z.object({
   id: z.number(),
@@ -173,6 +177,25 @@ const formatDate = (dateString: string) =>
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  {
+    id: "no",
+    size: 48,
+    header: () => (
+      <div className="w-auto text-center text-xs font-medium">No.</div>
+    ),
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination;
+      const rows = table.getRowModel().rows;
+      const visualIndex = rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="w-auto text-center text-muted-foreground text-sm">
+          {pageIndex * pageSize + visualIndex + 1}
+        </div>
+      );
+    },
+    enableHiding: false,
+    enableSorting: false,
+  },
   {
     accessorKey: "request_code",
     header: "Kode Permintaan",
@@ -276,12 +299,24 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
 //   );
 // }
 
-export function DataTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[];
-}) {
-  const [data] = React.useState(() => initialData);
+const STATUS_FILTERS = [
+  { value: "all", label: "Semua" },
+  { value: "pending", label: "Menunggu" },
+  { value: "approved", label: "Disetujui" },
+  { value: "rejected", label: "Ditolak" },
+  { value: "completed", label: "Selesai" },
+] as const;
+
+export function DataTable({ data }: { data: z.infer<typeof schema>[] }) {
+  const [activeStatus, setActiveStatus] = React.useState("all");
+  const filteredData = React.useMemo(
+    () =>
+      activeStatus === "all"
+        ? data
+        : data.filter((r) => r.status === activeStatus),
+    [activeStatus, data],
+  );
+
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -308,7 +343,7 @@ export function DataTable({
   // );
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -345,46 +380,64 @@ export function DataTable({
   // }
 
   return (
-    <Tabs
-      defaultValue="outline"
-      className="w-full flex-col justify-start gap-6"
-    >
-      <div className="flex items-center justify-between">
-        <Label htmlFor="view-selector" className="sr-only">
-          View
-        </Label>
-        <Select defaultValue="outline">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
-          </SelectContent>
-        </Select>
-        <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
-        </TabsList>
+    <div className="flex w-full flex-col gap-4">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Status filter pills */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {STATUS_FILTERS.map((filter) => {
+            const count =
+              filter.value === "all"
+                ? data.length
+                : data.filter((r) => r.status === filter.value).length;
+            return (
+              <Button
+                key={filter.value}
+                variant={activeStatus === filter.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setActiveStatus(filter.value);
+                  setPagination((p) => ({ ...p, pageIndex: 0 }));
+                }}
+                className="rounded-full gap-1.5 pr-1.5 pl-3"
+              >
+                {filter.label}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-sm ${
+                    activeStatus === filter.value
+                      ? "bg-white/20 text-white dark:bg-black/20 dark:text-neutral-900"
+                      : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                  }`}
+                >
+                  {count}
+                </span>
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Column visibility */}
         <div className="flex items-center gap-2">
+          {/* Search input */}
+          <div className="relative w-full sm:max-w-xs">
+            <IconSearch className="text-muted-foreground absolute left-2.5 top-1/2 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Cari kode permintaan..."
+              value={
+                (table.getColumn("request_code")?.getFilterValue() as string) ??
+                ""
+              }
+              onChange={(e) =>
+                table.getColumn("request_code")?.setFilterValue(e.target.value)
+              }
+              className="pl-8 h-8"
+            />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
+                <span className="hidden lg:inline">Kolom</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -396,46 +449,61 @@ export function DataTable({
                     typeof column.accessorFn !== "undefined" &&
                     column.getCanHide(),
                 )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
         </div>
       </div>
-      <TabsContent
-        value="outline"
-        className="relative flex flex-col gap-4 overflow-auto"
-      >
+
+      {/* Table */}
+      <div className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
+                    const isSortable = header.column.getCanSort();
+                    const sortDir = header.column.getIsSorted();
                     return (
                       <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={
+                              isSortable
+                                ? "flex cursor-pointer select-none items-center gap-1.5"
+                                : ""
+                            }
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
+                            {isSortable && (
+                              <span className="text-muted-foreground">
+                                {sortDir === "asc" ? (
+                                  <IconArrowUp className="size-3.5" />
+                                ) : sortDir === "desc" ? (
+                                  <IconArrowDown className="size-3.5" />
+                                ) : (
+                                  <IconArrowsUpDown className="size-3.5" />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </TableHead>
                     );
                   })}
@@ -498,7 +566,7 @@ export function DataTable({
                   />
                 </SelectTrigger>
                 <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                  {[10, 15, 20, 30, 40, 50].map((pageSize) => (
                     <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
                     </SelectItem>
@@ -553,29 +621,8 @@ export function DataTable({
             </div>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }
 

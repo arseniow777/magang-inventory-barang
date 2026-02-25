@@ -19,6 +19,7 @@ import { useEffect, useState, Fragment } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../barang/pages/CreatePage";
+import ItemDetailPage from "../../barang/pages/ItemDetailPage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
 import PermintaanPage from "../../permintaan/pages/PermintaanPage";
 import BeritaPage from "../../berita/pages/BeritaPage";
@@ -93,11 +94,11 @@ export default function Dashboard() {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 h-auto content-center">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
+              className="mr-2 data-[orientation=vertical]:my-2"
             />
             <Breadcrumb>
               <BreadcrumbList>
@@ -139,6 +140,7 @@ export default function Dashboard() {
             <Route path="/" element={<BerandaPage />} />
             <Route path="/barang" element={<BarangPage />} />
             <Route path="/barang/create" element={<CreatePage />} />
+            <Route path="/barang/:id" element={<ItemDetailPage />} />
 
             {/* Administratif */}
             <Route path="/permintaan" element={<PermintaanPage />} />
