@@ -9,3 +9,12 @@ export function useBarangItems() {
     gcTime: 10 * 60 * 1000, // 10 minutes (cache time)
   });
 }
+
+export function useItemConditionSummary() {
+  return useQuery({
+    queryKey: ["items", "condition-summary"],
+    queryFn: () => itemsMasterAPI.getConditionSummary(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}

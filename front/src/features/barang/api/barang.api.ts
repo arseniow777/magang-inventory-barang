@@ -32,6 +32,11 @@ export const itemsMasterAPI = {
 
   restockItem: (id: number, data: any) =>
     apiClient.post<ItemMasters>(`/items/${id}/restock`, data),
+
+  getConditionSummary: () =>
+    apiClient.get<{ good: number; damaged: number; broken: number }>(
+      "/items/condition-summary",
+    ),
 };
 
 // Units
@@ -48,4 +53,7 @@ export const itemUnitsAPI = {
     apiClient.put<ItemUnits>(`/item-units/${id}`, data),
 
   deleteUnit: (id: number) => apiClient.delete<void>(`/item-units/${id}`),
+
+  getUnitsByStatus: (status: string) =>
+    apiClient.get<ItemUnits[]>(`/item-units?status=${status}`),
 };

@@ -7,6 +7,7 @@ import {
   updateItem,
   addItemPhoto,
   deleteItemPhoto,
+  getItemConditionSummary,
 } from "../controllers/items.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { checkRole } from "../middleware/role.middleware.js";
@@ -14,8 +15,8 @@ import { uploadItemPhotos } from "../utils/upload.js";
 
 const router = Router();
 
-
 router.get("/", getItems);
+router.get("/condition-summary", getItemConditionSummary);
 router.get("/:id", getItemById);
 
 router.use(verifyToken);
