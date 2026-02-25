@@ -29,7 +29,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDownload,
-  IconDotsVertical,
+  // IconDotsVertical,
   // IconGripVertical,
   IconLayoutColumns,
   IconPlus,
@@ -83,8 +83,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 // import { Input } from "@/components/ui/input";
@@ -171,6 +169,25 @@ const handleDownload = (reportId: number) => {
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  {
+    id: "no",
+    size: 48,
+    header: () => (
+      <div className="w-10 text-center text-xs font-medium">No.</div>
+    ),
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination;
+      const rows = table.getRowModel().rows;
+      const visualIndex = rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="w-10 text-center text-muted-foreground text-sm">
+          {pageIndex * pageSize + visualIndex + 1}
+        </div>
+      );
+    },
+    enableHiding: false,
+    enableSorting: false,
+  },
   {
     accessorKey: "report_number",
     header: "No. Berita Acara",

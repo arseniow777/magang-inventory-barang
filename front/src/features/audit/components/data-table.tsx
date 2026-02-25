@@ -80,8 +80,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 // import { Input } from "@/components/ui/input";
@@ -163,6 +161,23 @@ const formatDate = (dateString: string) =>
 // }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  {
+    id: "no",
+    size: 48,
+    header: () => (
+      <div className="w-10 text-center text-xs font-medium">No.</div>
+    ),
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination;
+      return (
+        <div className="w-10 text-center text-muted-foreground text-sm">
+          {pageIndex * pageSize + row.index + 1}
+        </div>
+      );
+    },
+    enableHiding: false,
+    enableSorting: false,
+  },
   {
     accessorKey: "action",
     header: "Aksi",

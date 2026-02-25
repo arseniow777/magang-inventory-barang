@@ -7,7 +7,9 @@ export interface RequestData {
   approved_at: string | null;
   created_at: string;
   destination_location: {
+    id: number;
     building_name: string;
+    floor: number;
   } | null;
   pic: {
     id: number;
@@ -21,6 +23,30 @@ export interface RequestData {
   _count: {
     request_items: number;
   };
+}
+
+export interface RequestItemData {
+  id: number;
+  unit: {
+    id: number;
+    unit_code: string;
+    condition: string;
+    status: string;
+    item: {
+      id: number;
+      name: string;
+      photos: { photo_url: string }[];
+    };
+    location: {
+      id: number;
+      building_name: string;
+      floor: number;
+    } | null;
+  };
+}
+
+export interface RequestDetailData extends RequestData {
+  request_items: RequestItemData[];
 }
 
 export type RequestStatus = "pending" | "approved" | "rejected" | "completed";
