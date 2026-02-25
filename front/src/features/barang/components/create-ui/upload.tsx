@@ -15,7 +15,6 @@ import { Badge } from "@/components/reui/badge";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   IconAlertCircle,
   IconArchive,

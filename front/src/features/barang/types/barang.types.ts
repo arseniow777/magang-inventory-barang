@@ -72,6 +72,21 @@ export interface ItemUnits {
   location_id: number;
 }
 
+export interface ItemUnitsWithLocation extends ItemUnits {
+  location: {
+    id: number;
+    location_code: string;
+    building_name: string;
+    floor: number;
+    address: string;
+  };
+}
+
+// detail (returned by GET /items/:id — includes photos + units with location)
+export interface ItemMasterDetail extends ItemMasters {
+  units: ItemUnitsWithLocation[];
+}
+
 export interface CreateItemUnitsDTO {
   unit_code: string;
   condition?: ItemCondition;

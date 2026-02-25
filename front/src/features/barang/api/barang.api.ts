@@ -25,7 +25,7 @@ export const itemsMasterAPI = {
   deleteItem: (id: number) => apiClient.delete<void>(`/items/${id}`),
 
   uploadPhoto: (id: number, file: FormData) =>
-    apiClient.post<ItemPhotos>(`/items/${id}/photos`, file),
+    apiClient.postForm<ItemPhotos>(`/items/${id}/photos`, file),
 
   deletePhoto: (id: number, photoId: number) =>
     apiClient.delete<void>(`/items/${id}/photos/${photoId}`),

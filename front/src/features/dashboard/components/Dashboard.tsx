@@ -20,6 +20,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../barang/pages/CreatePage";
 import ItemDetailPage from "../../barang/pages/ItemDetailPage";
+import ItemUnitDetailPage from "../../barang/pages/ItemUnitDetailPage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
 import PermintaanPage from "../../permintaan/pages/PermintaanPage";
 import BeritaPage from "../../berita/pages/BeritaPage";
@@ -33,6 +34,7 @@ const segmentLabels: { [key: string]: string } = {
   dashboard: "Dashboard",
   barang: "Barang",
   create: "Tambah Barang",
+  units: "Unit",
   permintaan: "Daftar Permintaan",
   berita: "Berita Acara",
   lokasi: "Lokasi",
@@ -141,6 +143,10 @@ export default function Dashboard() {
             <Route path="/barang" element={<BarangPage />} />
             <Route path="/barang/create" element={<CreatePage />} />
             <Route path="/barang/:id" element={<ItemDetailPage />} />
+            <Route
+              path="/barang/:itemId/units/:unitId"
+              element={<ItemUnitDetailPage />}
+            />
 
             {/* Administratif */}
             <Route path="/permintaan" element={<PermintaanPage />} />

@@ -54,4 +54,25 @@ export const apiClient = {
     }),
 
   delete: <T>(url: string) => request<T>(url, { method: "DELETE" }),
+
+  /** Use for multipart/form-data uploads — omits Content-Type so the browser sets it with the boundary. */
+  postForm: <T>(url: string, data: FormData) => {
+    const token = localStorage.getItem("token");
+    return fetch(`${API_BASE_URL}${url}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: data,
+    }).then((res) =>
+      res
+        .json()
+        .catch(() => ({}) as { success: boolean; message: string; data: T })
+        .then((body) => {
+          if (!res.ok)
+            throw new Error(
+              body.message ?? `Request failed with status ${res.status}`,
+            );
+          return body.data as T;
+        }),
+    );
+  },
 };
