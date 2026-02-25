@@ -11,9 +11,9 @@ import { checkRole } from "../middleware/role.middleware.js";
 const router = Router();
 
 
-router.get("/", checkRole("admin"), getItemUnits);
+router.get("/", getItemUnits);
 router.get("/code/:unit_code", getItemUnitByCode);
-router.get("/:id", checkRole("admin"), getItemUnitById);
+router.get("/:id", getItemUnitById);
 
 router.use(verifyToken);
 

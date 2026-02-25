@@ -1,7 +1,11 @@
 import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/audit.js";
-import { generateModelCode, generateUnitCode, generateMultipleUnitCodes } from "../utils/smartCode.js";
+import {
+  generateModelCode,
+  generateUnitCode,
+  generateMultipleUnitCodes,
+} from "../utils/smartCode.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,36 +15,43 @@ const __dirname = path.dirname(__filename);
 
 export const createItem = async (req, res, next) => {
   try {
-    const { name, category, procurement_year, quantity, location_id } = req.body;
+    const { name, category, procurement_year, quantity, location_id } =
+      req.body;
 
     if (!name || !category || !procurement_year || !quantity || !location_id) {
       return sendError(res, "Semua field wajib diisi", 400);
     }
 
-    const location = await prisma.locations.findUnique({ 
-      where: { id: parseInt(location_id) } 
+    const location = await prisma.locations.findUnique({
+      where: { id: parseInt(location_id) },
     });
 
     if (!location) {
       return sendError(res, "Lokasi tidak ditemukan", 404);
     }
 
-   const model_code = await generateModelCode(category, parseInt(procurement_year));
-   
-   const item = await prisma.itemMasters.create({
-        data: {
-            name,
-            model_code,
-            category,
-            procurement_year: parseInt(procurement_year),
-        },
+    const model_code = await generateModelCode(
+      category,
+      parseInt(procurement_year),
+    );
+
+    const item = await prisma.itemMasters.create({
+      data: {
+        name,
+        model_code,
+        category,
+        procurement_year: parseInt(procurement_year),
+      },
     });
 
-    const unitCodes = await generateMultipleUnitCodes(item.id, parseInt(quantity));
-    const unitsData = unitCodes.map(code => ({
-    unit_code: code,
-    item_id: item.id,
-    location_id: parseInt(location_id),
+    const unitCodes = await generateMultipleUnitCodes(
+      item.id,
+      parseInt(quantity),
+    );
+    const unitsData = unitCodes.map((code) => ({
+      unit_code: code,
+      item_id: item.id,
+      location_id: parseInt(location_id),
     }));
 
     await prisma.itemUnits.createMany({ data: unitsData });
@@ -65,11 +76,11 @@ export const createItem = async (req, res, next) => {
 
     const itemWithDetails = await prisma.itemMasters.findUnique({
       where: { id: item.id },
-      include: { 
+      include: {
         photos: true,
         units: {
-          include: { location: true }
-        }
+          include: { location: true },
+        },
       },
     });
 
@@ -88,22 +99,27 @@ export const restockItem = async (req, res, next) => {
       return sendError(res, "Quantity dan location_id wajib diisi", 400);
     }
 
-    const item = await prisma.itemMasters.findUnique({ where: { id: parseInt(id) } });
+    const item = await prisma.itemMasters.findUnique({
+      where: { id: parseInt(id) },
+    });
 
     if (!item) {
       return sendError(res, "Item tidak ditemukan", 404);
     }
 
-    const location = await prisma.locations.findUnique({ 
-      where: { id: parseInt(location_id) } 
+    const location = await prisma.locations.findUnique({
+      where: { id: parseInt(location_id) },
     });
 
     if (!location) {
       return sendError(res, "Lokasi tidak ditemukan", 404);
     }
 
-    const unitCodes = await generateMultipleUnitCodes(item.id, parseInt(quantity));
-    const unitsData = unitCodes.map(code => ({
+    const unitCodes = await generateMultipleUnitCodes(
+      item.id,
+      parseInt(quantity),
+    );
+    const unitsData = unitCodes.map((code) => ({
       unit_code: code,
       item_id: item.id,
       location_id: parseInt(location_id),
@@ -123,11 +139,11 @@ export const restockItem = async (req, res, next) => {
 
     const itemWithDetails = await prisma.itemMasters.findUnique({
       where: { id: item.id },
-      include: { 
+      include: {
         photos: true,
         units: {
-          include: { location: true }
-        }
+          include: { location: true },
+        },
       },
     });
 
@@ -144,28 +160,28 @@ export const getItems = async (req, res, next) => {
     const where = {};
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { model_code: { contains: search, mode: 'insensitive' } },
-        { category: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: "insensitive" } },
+        { model_code: { contains: search, mode: "insensitive" } },
+        { category: { contains: search, mode: "insensitive" } },
       ];
     }
 
     const items = await prisma.itemMasters.findMany({
       where,
-      include: { 
+      include: {
         photos: true,
         _count: {
           select: {
-            units: true
-          }
-        }
+            units: true,
+          },
+        },
       },
     });
 
     const itemsWithStats = await Promise.all(
       items.map(async (item) => {
         const stats = await prisma.itemUnits.groupBy({
-          by: ['status'],
+          by: ["status"],
           where: { item_id: item.id },
           _count: true,
         });
@@ -178,7 +194,7 @@ export const getItems = async (req, res, next) => {
           demolished: 0,
         };
 
-        stats.forEach(stat => {
+        stats.forEach((stat) => {
           statusCounts[stat.status] = stat._count;
         });
 
@@ -187,7 +203,7 @@ export const getItems = async (req, res, next) => {
           total_units: item._count.units,
           ...statusCounts,
         };
-      })
+      }),
     );
 
     return sendSuccess(res, "Data items berhasil diambil", itemsWithStats);
@@ -202,11 +218,11 @@ export const getItemById = async (req, res, next) => {
 
     const item = await prisma.itemMasters.findUnique({
       where: { id: parseInt(id) },
-      include: { 
+      include: {
         photos: true,
         units: {
-          include: { location: true }
-        }
+          include: { location: true },
+        },
       },
     });
 
@@ -225,7 +241,9 @@ export const updateItem = async (req, res, next) => {
     const { id } = req.params;
     const { name, category } = req.body;
 
-    const existing = await prisma.itemMasters.findUnique({ where: { id: parseInt(id) } });
+    const existing = await prisma.itemMasters.findUnique({
+      where: { id: parseInt(id) },
+    });
 
     if (!existing) {
       return sendError(res, "Item tidak ditemukan", 404);
@@ -324,3 +342,25 @@ export const deleteItemPhoto = async (req, res, next) => {
   }
 };
 
+export const getItemConditionSummary = async (req, res, next) => {
+  try {
+    const stats = await prisma.itemUnits.groupBy({
+      by: ["condition"],
+      _count: true,
+    });
+
+    const result = {
+      good: 0,
+      damaged: 0,
+      broken: 0,
+    };
+
+    stats.forEach((stat) => {
+      result[stat.condition] = stat._count;
+    });
+
+    return sendSuccess(res, "Data kondisi barang berhasil diambil", result);
+  } catch (err) {
+    next(err);
+  }
+};
