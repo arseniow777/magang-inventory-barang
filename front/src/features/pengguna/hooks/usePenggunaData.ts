@@ -15,6 +15,26 @@ export function useCreateUser() {
   return useMutation({
     mutationFn: (data: Parameters<typeof usersAPI.createUser>[0]) =>
       usersAPI.createUser(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: async () => {
+      await qc.refetchQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+export function useUpdateUser() {
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof usersAPI.updateUser>[1];
+    }) => usersAPI.updateUser(id, data),
+  });
+}
+
+export function useDeleteUser() {
+  return useMutation({
+    mutationFn: (id: number) => usersAPI.deleteUser(id),
   });
 }

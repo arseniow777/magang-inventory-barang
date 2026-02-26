@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,69 +11,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateUser } from "../../hooks/usePenggunaData";
-import { createUserSchema } from "../../schemas/pengguna.schema";
 import { IconUser } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateUser } from "../../hooks/usePenggunaData";
+import type { UserData } from "../../types/pengguna.types";
 
-const PRESET_PASSWORDS = ["Telkom@123", "Invetel@2024", "User@12345"];
-
-export function CreatePengguna() {
+export function EditPengguna() {
   const navigate = useNavigate();
-  const { mutate: createUser, isPending } = useCreateUser();
+  const { id } = useParams<{ id: string }>();
+  const qc = useQueryClient();
+  const { mutate: updateUser, isPending } = useUpdateUser();
 
   const [form, setForm] = useState({
     name: "",
-    employee_id: "",
     username: "",
-    password: "",
     role: "",
     phone_local: "",
     telegram_id: "",
+    is_active: true,
   });
 
-  const [passwordMode, setPasswordMode] = useState<"preset" | "manual">(
-    "preset",
-  );
+  useEffect(() => {
+    const users = qc.getQueryData<UserData[]>(["users"]);
+    const user = users?.find((u) => u.id === Number(id));
+    if (user) {
+      let raw = user.phone_number ?? "";
+      raw = raw.replace(/\s/g, "");
+      if (raw.startsWith("+62")) raw = raw.slice(3);
+      else if (raw.startsWith("62")) raw = raw.slice(2);
+      else if (raw.startsWith("0")) raw = raw.slice(1);
+
+      setForm({
+        name: user.name ?? "",
+        username: user.username ?? "",
+        role: user.role ?? "",
+        phone_local: raw,
+        telegram_id: user.telegram_id ?? "",
+        is_active: user.is_active ?? true,
+      });
+    }
+  }, [id, qc]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = () => {
-    const payload = {
-      name: form.name.trim(),
-      employee_id: form.employee_id.trim(),
-      username: form.username.trim(),
-      password: form.password,
-      role: form.role as "pic" | "admin",
-      phone_number: form.phone_local.trim() ? form.phone_local.trim() : null,
-      telegram_id: form.telegram_id.trim() || null,
-    };
-
-    const validation = createUserSchema.safeParse(payload);
-
-    if (!validation.success) {
-      toast.error(validation.error.issues[0]?.message ?? "Data tidak valid");
+    if (!form.name.trim() || !form.username.trim() || !form.role) {
+      toast.error("Nama, username, dan role wajib diisi");
       return;
     }
 
-    const finalPayload = {
-      ...validation.data,
-      phone_number: validation.data.phone_number
-        ? `+62${validation.data.phone_number}`
+    const payload = {
+      name: form.name.trim(),
+      username: form.username.trim(),
+      role: form.role as "pic" | "admin",
+      phone_number: form.phone_local.trim()
+        ? `+62${form.phone_local.trim()}`
         : null,
+      telegram_id: form.telegram_id.trim() || null,
+      is_active: form.is_active,
     };
 
-    createUser(finalPayload as any, {
-      onSuccess: () => {
-        toast.success("Pengguna berhasil ditambahkan");
-        navigate("/dashboard/pengguna");
+    updateUser(
+      { id: Number(id), data: payload },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: ["users"] });
+          toast.success("Pengguna berhasil diupdate");
+          navigate("/dashboard/pengguna");
+        },
+        onError: (err) =>
+          toast.error(
+            err instanceof Error ? err.message : "Gagal mengupdate pengguna",
+          ),
       },
-      onError: (err) =>
-        toast.error(
-          err instanceof Error ? err.message : "Gagal menambahkan pengguna",
-        ),
-    });
+    );
   };
 
   return (
@@ -83,9 +96,9 @@ export function CreatePengguna() {
           <IconUser className="size-12 text-stone-100" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold">Tambahkan User Baru</h2>
+          <h2 className="text-xl font-semibold">Edit Pengguna</h2>
           <p className="text-sm text-muted-foreground">
-            Isi form berikut untuk menambahkan user baru
+            Ubah data pengguna yang diperlukan
           </p>
         </div>
       </div>
@@ -104,18 +117,6 @@ export function CreatePengguna() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-1.5">
-            <Label htmlFor="employee_id">ID Karyawan</Label>
-            <Input
-              id="employee_id"
-              name="employee_id"
-              value={form.employee_id}
-              onChange={handleChange}
-              placeholder="A11.2024.00001"
-              className="font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
             <Label htmlFor="username">Username</Label>
             <Input
               id="username"
@@ -124,58 +125,6 @@ export function CreatePengguna() {
               onChange={handleChange}
               placeholder="username"
             />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <Label>Password</Label>
-            <div className="flex gap-2">
-              <Select
-                value={passwordMode}
-                onValueChange={(v) => {
-                  setPasswordMode(v as "preset" | "manual");
-                  setForm((prev) => ({ ...prev, password: "" }));
-                }}
-              >
-                <SelectTrigger className="w-28 shrink-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="preset">Preset</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {passwordMode === "preset" ? (
-                <Select
-                  value={form.password}
-                  onValueChange={(v) =>
-                    setForm((prev) => ({ ...prev, password: v ?? "" }))
-                  }
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Pilih password" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRESET_PASSWORDS.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  className="flex-1"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Min. 8 karakter"
-                />
-              )}
-            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -217,6 +166,38 @@ export function CreatePengguna() {
               />
             </div>
           </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="telegram_id">
+              Telegram ID{" "}
+              <span className="text-muted-foreground text-xs">(opsional)</span>
+            </Label>
+            <Input
+              id="telegram_id"
+              name="telegram_id"
+              value={form.telegram_id}
+              onChange={handleChange}
+              placeholder="@username"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Status</Label>
+          <Select
+            value={form.is_active ? "active" : "inactive"}
+            onValueChange={(v) =>
+              setForm((prev) => ({ ...prev, is_active: v === "active" }))
+            }
+          >
+            <SelectTrigger className="w-full sm:w-1/2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Aktif</SelectItem>
+              <SelectItem value="inactive">Nonaktif</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -232,7 +213,7 @@ export function CreatePengguna() {
           disabled={isPending}
           className="bg-red-600 hover:bg-red-700 text-white px-8"
         >
-          {isPending ? "Menyimpan..." : "Konfirmasi"}
+          {isPending ? "Menyimpan..." : "Simpan"}
         </Button>
       </div>
     </div>

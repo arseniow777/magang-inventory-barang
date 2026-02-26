@@ -21,7 +21,6 @@ import {
   IconUsersGroup,
   IconHistory,
   IconHelp,
-  IconCirclePlus,
 } from "@tabler/icons-react";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -96,11 +95,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Bantuan",
           url: "#",
           icon: <IconHelp />,
-        },
-        {
-          title: "Tambahkan data",
-          url: "#",
-          icon: <IconCirclePlus />,
         },
       ],
     }),

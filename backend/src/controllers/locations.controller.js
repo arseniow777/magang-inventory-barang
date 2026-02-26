@@ -33,15 +33,17 @@ export const createLocation = async (req, res, next) => {
   try {
     const { building_name, floor, address } = req.body;
 
-    const prefix = building_name.substring(0, 3).toLowerCase(); 
-    const floorNumberStr = floor.toString().replace(/\D/g, '');   
+    const prefix = building_name.substring(0, 3).toLowerCase();
+    const floorNumberStr = floor.toString().replace(/\D/g, "");
     const generatedCode = `${prefix}-${floorNumberStr}`;
 
     if (!building_name || !floor || !address) {
       return sendError(res, "Semua field wajib diisi", 400);
     }
 
-    const existing = await prisma.locations.findUnique({ where: { location_code: generatedCode } });
+    const existing = await prisma.locations.findUnique({
+      where: { location_code: generatedCode },
+    });
     const floorInt = parseInt(floorNumberStr);
 
     if (existing) {
@@ -49,7 +51,12 @@ export const createLocation = async (req, res, next) => {
     }
 
     const location = await prisma.locations.create({
-      data: { location_code: generatedCode, building_name, floor: floorInt, address },
+      data: {
+        location_code: generatedCode,
+        building_name,
+        floor: floorInt,
+        address,
+      },
     });
 
     await createAuditLog({
@@ -73,7 +80,9 @@ export const updateLocation = async (req, res, next) => {
     const { id } = req.params;
     const { building_name, floor, address } = req.body;
 
-    const existing = await prisma.locations.findUnique({ where: { id: parseInt(id) } });
+    const existing = await prisma.locations.findUnique({
+      where: { id: parseInt(id) },
+    });
 
     if (!existing) {
       return sendError(res, "Lokasi tidak ditemukan", 404);
@@ -87,7 +96,7 @@ export const updateLocation = async (req, res, next) => {
       const newFloor = floor !== undefined ? floor : existing.floor;
 
       const prefix = newBuilding.substring(0, 3).toLowerCase();
-      const floorNumberStr = newFloor.toString().replace(/\D/g, '');
+      const floorNumberStr = newFloor.toString().replace(/\D/g, "");
       const newGeneratedCode = `${prefix}-${floorNumberStr}`;
 
       updateData.building_name = newBuilding;
@@ -95,14 +104,18 @@ export const updateLocation = async (req, res, next) => {
       updateData.location_code = newGeneratedCode;
 
       const codeConflict = await prisma.locations.findFirst({
-        where: { 
+        where: {
           location_code: newGeneratedCode,
-          NOT: { id: parseInt(id) } 
-        }
+          NOT: { id: parseInt(id) },
+        },
       });
 
       if (codeConflict) {
-        return sendError(res, `Gagal update: Kode ${newGeneratedCode} sudah digunakan oleh lokasi lain`, 400);
+        return sendError(
+          res,
+          `Gagal update: Kode ${newGeneratedCode} sudah digunakan oleh lokasi lain`,
+          400,
+        );
       }
     }
 
@@ -133,15 +146,19 @@ export const deleteLocation = async (req, res, next) => {
 
     const existing = await prisma.locations.findUnique({
       where: { id: parseInt(id) },
-      include: { items: true },
+      include: { item_units: true },
     });
 
     if (!existing) {
       return sendError(res, "Lokasi tidak ditemukan", 404);
     }
 
-    if (existing.items.length > 0) {
-      return sendError(res, "Lokasi tidak bisa dihapus karena masih memiliki item", 400);
+    if (existing.item_units.length > 0) {
+      return sendError(
+        res,
+        "Lokasi tidak bisa dihapus karena masih memiliki item",
+        400,
+      );
     }
 
     await prisma.locations.delete({ where: { id: parseInt(id) } });
