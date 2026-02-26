@@ -49,6 +49,8 @@ const segmentLabels: { [key: string]: string } = {
   "reset-password": "Reset Password",
   berita: "Berita Acara",
   lokasi: "Lokasi",
+  tambah: "Tambah Lokasi",
+  edit: "Edit Lokasi",
   pengguna: "Pengguna",
   audit: "Audit",
   users: "Users",
@@ -237,6 +239,22 @@ export default function Dashboard() {
               element={
                 <AdminRoute>
                   <LokasiPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/lokasi/tambah"
+              element={
+                <AdminRoute>
+                  <TambahLokasiPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/lokasi/edit/:id"
+              element={
+                <AdminRoute>
+                  <EditLokasiPage />
                 </AdminRoute>
               }
             />
