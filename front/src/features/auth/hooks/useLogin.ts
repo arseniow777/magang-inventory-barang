@@ -12,8 +12,9 @@ export function useLogin() {
   return useMutation<LoginResponse, Error, LoginFormData>({
     mutationFn: authAPI.login,
     onSuccess: (data) => {
-      // clear old data
+      // clear old data and guest flag
       queryClient.clear();
+      localStorage.removeItem("isGuest");
       localStorage.setItem("token", data.token);
       if (!data.user?.telegram_id) {
         navigate(ROUTES.TELEGRAM_CONFIRM);

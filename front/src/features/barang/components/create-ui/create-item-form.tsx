@@ -1,19 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { FirstField } from "./first-field";
 import { SecondField } from "./second-field";
 import { LastField } from "./last-field";
 import { useCreateItem } from "@/hooks/useItemQueries";
 import { toast } from "sonner";
+import { ConfirmItemDialog } from "./ConfirmItemDialog";
 
 interface FormData {
   photos: File[];
@@ -64,9 +57,7 @@ export function CreateItemForm() {
     setResetKey((prev) => prev + 1);
   };
 
-  const handleCancel = () => {
-    navigate("/dashboard/barang");
-  };
+  const handleCancel = () => navigate("/dashboard/barang");
 
   const validateForm = (): boolean => {
     if (formData.photos.length === 0) {
@@ -100,11 +91,8 @@ export function CreateItemForm() {
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
+  const handleSubmit = () => {
     setConfirmDialog(false);
-
     createItem(
       {
         name: formData.name,
@@ -116,14 +104,14 @@ export function CreateItemForm() {
       },
       {
         onSuccess: () => {
-          (toast.success("Berhasil menambahkan data", {
+          toast.success("Berhasil menambahkan data", {
             position: "top-center",
-          }),
-            navigate("/dashboard/barang"));
+          });
+          navigate("/dashboard/barang");
         },
         onError: (error) => {
-          (toast.error("Event has been created", { position: "top-center" }),
-            console.error("Error creating item:", error));
+          toast.error("Event has been created", { position: "top-center" });
+          console.error("Error creating item:", error);
           alert(
             error instanceof Error
               ? error.message
@@ -136,7 +124,6 @@ export function CreateItemForm() {
 
   return (
     <div className="w-full mx-auto py-6 space-y-6">
-      {/* Form Sections */}
       <div className="flex flex-col md:flex-row w-full justify-between items-start gap-20 md:gap-10">
         <div className="w-full md:flex-1">
           <FirstField
@@ -150,11 +137,11 @@ export function CreateItemForm() {
         </div>
         <div className="w-full md:flex-1 flex flex-col gap-6">
           <LastField formData={formData} onFieldChange={handleFieldChange} />
-
-          {/* Buttons */}
           <div className="flex flex-col gap-3 pt-6 border-t">
             <Button
-              onClick={() => setConfirmDialog(true)}
+              onClick={() => {
+                if (validateForm()) setConfirmDialog(true);
+              }}
               disabled={isPending}
               className="w-full"
             >
@@ -174,52 +161,12 @@ export function CreateItemForm() {
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Penambahan Barang</DialogTitle>
-            <DialogDescription>
-              Pastikan semua data sudah benar sebelum menambahkan barang.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2 text-sm">
-            <p>
-              <span className="font-semibold">Nama:</span> {formData.name}
-            </p>
-            <p>
-              <span className="font-semibold">Kategori:</span>{" "}
-              {formData.category}
-            </p>
-            <p>
-              <span className="font-semibold">Kuantitas:</span>{" "}
-              {formData.quantity}
-            </p>
-            <p>
-              <span className="font-semibold">Tahun Pengadaan:</span>{" "}
-              {formData.procurement_year}
-            </p>
-            <p>
-              <span className="font-semibold">Jumlah Foto:</span>{" "}
-              {formData.photos.length}/3
-            </p>
-          </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialog(false)}
-              className="flex-1"
-            >
-              Cek Lagi
-            </Button>
-            <Button onClick={handleSubmit} className="flex-1">
-              Benar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmItemDialog
+        open={confirmDialog}
+        onOpenChange={setConfirmDialog}
+        formData={formData}
+        onConfirm={handleSubmit}
+      />
     </div>
   );
 }

@@ -245,6 +245,7 @@ export const getMyRequests = async (req, res, next) => {
     const requests = await prisma.requests.findMany({
       where: { pic_id: req.user.id },
       include: {
+        pic: true,
         admin: true,
         destination_location: true,
         _count: {

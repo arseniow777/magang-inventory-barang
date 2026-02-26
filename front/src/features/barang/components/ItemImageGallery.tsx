@@ -1,76 +1,63 @@
-import { IconPackage } from "@tabler/icons-react";
-import { getImageUrl } from "@/config/api";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
 import type { ItemPhotos } from "../types/barang.types";
-import { Button } from "@/components/ui/button";
+import { MainImage } from "./image-gallery/MainImage";
+import { ItemTitleStats } from "./image-gallery/ItemTitleStats";
+import { AddToCartSection } from "./image-gallery/AddToCartSection";
 
 interface ItemImageGalleryProps {
   photos: ItemPhotos[];
   imageUrl: string | null;
   itemName?: string;
+  modelCode?: string;
   selectedPhoto: string | null;
   onSelectPhoto: (path: string) => void;
+  /** Pass to enable the cart button (PIC only). Omit on unit detail page. */
+  itemId?: number;
+  availableUnits?: number;
+  totalUnits?: number;
+  goodUnits?: number;
 }
 
 export default function ItemImageGallery({
   photos,
   imageUrl,
   itemName,
+  modelCode,
   selectedPhoto,
   onSelectPhoto,
+  itemId,
+  availableUnits = 0,
+  totalUnits,
+  goodUnits,
 }: ItemImageGalleryProps) {
+  const { data: authUser } = useAuthUser();
+  const isAdmin = authUser?.role === Role.admin;
+  const showCartButton = !isAdmin && !!itemId && availableUnits > 0;
+
   return (
     <>
-      {/* Main image */}
-      <div className="w-full aspect-square rounded-sm overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={itemName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <IconPackage className="h-16 w-16 text-muted-foreground/40" />
-        )}
-      </div>
-      {/* Thumbnails */}
-      {photos.length > 1 && (
-        <div className="flex gap-2 flex-wrap">
-          {photos.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => onSelectPhoto(p.file_path)}
-              className={`h-16 w-16 rounded-sm overflow-hidden border-2 transition-colors ${
-                (selectedPhoto ?? photos[0]?.file_path) === p.file_path
-                  ? "border-primary"
-                  : "border-transparent"
-              }`}
-            >
-              <img
-                src={getImageUrl(p.file_path)}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </button>
-          ))}
-        </div>
+      <MainImage
+        photos={photos}
+        imageUrl={imageUrl}
+        itemName={itemName}
+        selectedPhoto={selectedPhoto}
+        onSelectPhoto={onSelectPhoto}
+      />
+      <ItemTitleStats
+        itemName={itemName}
+        modelCode={modelCode}
+        totalUnits={totalUnits}
+        availableUnits={availableUnits}
+        goodUnits={goodUnits}
+      />
+      {showCartButton && (
+        <AddToCartSection
+          itemId={itemId!}
+          itemName={itemName!}
+          firstPhotoPath={photos[0]?.file_path ?? null}
+          availableUnits={availableUnits}
+        />
       )}
-      <div className="w-full space-y-4 mt-10">
-        <Button size="lg" variant="outline" className="w-full  rounded-sm">
-          Tambahkan ke bagasi
-        </Button>
-
-        <div className="flex gap-4">
-          <Button size="lg" variant="outline" className="flex-1  rounded-sm">
-            Transfer
-          </Button>
-          <Button size="lg" variant="outline" className="flex-1  rounded-sm">
-            Lelang
-          </Button>
-          <Button size="lg" variant="outline" className="flex-1  rounded-sm">
-            Arsipkan
-          </Button>
-        </div>
-      </div>
     </>
   );
 }

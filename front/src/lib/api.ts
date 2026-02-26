@@ -23,6 +23,12 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 
   const body = await response.json().catch(() => ({}) as ApiResponse<T>);
 
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    window.location.replace("/login");
+    throw new Error("Sesi berakhir");
+  }
+
   if (!response.ok) {
     throw new Error(
       body.message ?? `Request failed with status ${response.status}`,

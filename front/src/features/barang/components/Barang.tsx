@@ -6,9 +6,12 @@ import { useBarangFilter } from "../hooks/useBarangFilter";
 import { IconDatabasePlus } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { ButtonGroupInput } from "./group-button";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
 
 export function Barang() {
   const { data: items = [], isLoading, error } = useBarangItems();
+  const { data: authUser } = useAuthUser();
+  const isAdmin = authUser?.role === Role.admin;
   const {
     categories,
     filteredItems,
@@ -64,10 +67,12 @@ export function Barang() {
               sortDir={sortDir}
               onSortDirChange={setSortDir}
             />
-            <Button className="gap-2" onClick={handleCreate}>
-              <IconDatabasePlus className="h-4 w-4" />
-              <p className="hidden lg:block">Tambah Barang</p>
-            </Button>
+            {isAdmin && (
+              <Button className="gap-2" onClick={handleCreate}>
+                <IconDatabasePlus className="h-4 w-4" />
+                <p className="hidden lg:block">Tambah Barang</p>
+              </Button>
+            )}
           </div>
         </div>
         {/* Items Grid */}

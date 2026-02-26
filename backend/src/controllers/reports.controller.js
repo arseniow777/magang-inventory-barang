@@ -15,7 +15,7 @@ export const getReports = async (req, res, next) => {
 
     const where = {};
     if (report_type) where.report_type = report_type;
-    if (is_approved !== undefined) where.is_approved = is_approved === 'true';
+    if (is_approved !== undefined) where.is_approved = is_approved === "true";
 
     const reports = await prisma.officialReports.findMany({
       where,
@@ -23,13 +23,13 @@ export const getReports = async (req, res, next) => {
         request: {
           include: {
             pic: true,
-            destination_location: true
-          }
+            destination_location: true,
+          },
         },
         issued_by: true,
-        approved_by: true
+        approved_by: true,
       },
-      orderBy: { issued_date: 'desc' }
+      orderBy: { issued_date: "desc" },
     });
 
     return sendSuccess(res, "Data reports berhasil diambil", reports);
@@ -55,16 +55,16 @@ export const getReportById = async (req, res, next) => {
                 unit: {
                   include: {
                     item: true,
-                    location: true
-                  }
-                }
-              }
-            }
-          }
+                    location: true,
+                  },
+                },
+              },
+            },
+          },
         },
         issued_by: true,
-        approved_by: true
-      }
+        approved_by: true,
+      },
     });
 
     if (!report) {
@@ -94,16 +94,16 @@ export const getReportByRequestId = async (req, res, next) => {
                 unit: {
                   include: {
                     item: true,
-                    location: true
-                  }
-                }
-              }
-            }
-          }
+                    location: true,
+                  },
+                },
+              },
+            },
+          },
         },
         issued_by: true,
-        approved_by: true
-      }
+        approved_by: true,
+      },
     });
 
     if (!report) {
@@ -124,9 +124,9 @@ export const approveReport = async (req, res, next) => {
       where: { id: parseInt(id) },
       include: {
         request: {
-          include: { pic: true }
-        }
-      }
+          include: { pic: true },
+        },
+      },
     });
 
     if (!report) {
@@ -142,27 +142,27 @@ export const approveReport = async (req, res, next) => {
       data: {
         is_approved: true,
         approved_by_id: req.user.id,
-        approved_at: new Date()
+        approved_at: new Date(),
       },
       include: {
         request: {
-          include: { pic: true }
+          include: { pic: true },
         },
-        approved_by: true
-      }
+        approved_by: true,
+      },
     });
 
     await prisma.notifications.create({
       data: {
         user_id: report.request.pic_id,
-        message: `Berita acara ${report.report_number} telah disetujui. Anda dapat mendownload sekarang.`
-      }
+        message: `Berita acara ${report.report_number} telah disetujui. Anda dapat mendownload sekarang.`,
+      },
     });
 
     if (report.request.pic.telegram_id) {
       await sendTelegramMessage(
         report.request.pic.telegram_id,
-        `✅ Berita acara ${report.report_number} telah disetujui!\n\nAnda dapat mendownload berita acara melalui aplikasi.`
+        `✅ Berita acara ${report.report_number} telah disetujui!\n\nAnda dapat mendownload berita acara melalui aplikasi.`,
       );
     }
 
@@ -173,7 +173,7 @@ export const approveReport = async (req, res, next) => {
       entity_type: "OfficialReports",
       entity_id: report.id,
       description: `Admin ${req.user.username} menyetujui berita acara ${report.report_number}`,
-      user_agent: req.headers["user-agent"]
+      user_agent: req.headers["user-agent"],
     });
 
     return sendSuccess(res, "Report berhasil diapprove", updated);
@@ -190,9 +190,9 @@ export const rejectReport = async (req, res, next) => {
       where: { id: parseInt(id) },
       include: {
         request: {
-          include: { pic: true }
-        }
-      }
+          include: { pic: true },
+        },
+      },
     });
 
     if (!report) {
@@ -206,14 +206,14 @@ export const rejectReport = async (req, res, next) => {
     await prisma.notifications.create({
       data: {
         user_id: report.request.pic_id,
-        message: `Berita acara ${report.report_number} ditolak. Silakan hubungi admin.`
-      }
+        message: `Berita acara ${report.report_number} ditolak. Silakan hubungi admin.`,
+      },
     });
 
     if (report.request.pic.telegram_id) {
       await sendTelegramMessage(
         report.request.pic.telegram_id,
-        `❌ Berita acara ${report.report_number} ditolak.\n\nSilakan hubungi admin untuk informasi lebih lanjut.`
+        `❌ Berita acara ${report.report_number} ditolak.\n\nSilakan hubungi admin untuk informasi lebih lanjut.`,
       );
     }
 
@@ -224,7 +224,7 @@ export const rejectReport = async (req, res, next) => {
       entity_type: "OfficialReports",
       entity_id: report.id,
       description: `Admin ${req.user.username} menolak berita acara ${report.report_number}`,
-      user_agent: req.headers["user-agent"]
+      user_agent: req.headers["user-agent"],
     });
 
     return sendSuccess(res, "Report berhasil direject");
@@ -240,16 +240,20 @@ export const downloadReport = async (req, res, next) => {
     const report = await prisma.officialReports.findUnique({
       where: { id: parseInt(id) },
       include: {
-        request: true
-      }
+        request: true,
+      },
     });
 
     if (!report) {
       return sendError(res, "Report tidak ditemukan", 404);
     }
 
-    if (!report.is_approved && req.user.role !== 'admin') {
-      return sendError(res, "Report belum diapprove, tidak dapat didownload", 403);
+    if (!report.is_approved && req.user.role !== "admin") {
+      return sendError(
+        res,
+        "Report belum diapprove, tidak dapat didownload",
+        403,
+      );
     }
 
     const filePath = path.join(__dirname, "../../", report.file_path);
@@ -259,7 +263,10 @@ export const downloadReport = async (req, res, next) => {
     }
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=${report.report_number}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename=${report.report_number}.pdf`,
+    );
 
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);

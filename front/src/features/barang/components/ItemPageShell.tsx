@@ -26,14 +26,14 @@ export default function ItemPageShell({
 }: ItemPageShellProps) {
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <div className="w-full flex flex-col md:flex-row gap-8">
-        <Button variant="outline" size="sm" onClick={onBack}>
+      <div className="w-auto flex flex-col md:flex-row gap-4">
+        <Button variant="outline" size="sm" onClick={onBack} className="w-auto">
           <IconArrowLeft className="h-4 w-4" />
         </Button>
 
         <div className="w-full">
           {/* ── Header ── */}
-          <div className="flex items-center mb-5">
+          {/* <div className="flex items-center mb-5">
             <div>
               <h1 className="text-2xl font-semibold leading-tight mb-1">
                 {name ?? "—"}
@@ -42,7 +42,7 @@ export default function ItemPageShell({
                 {subtitle ?? "—"}
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* ── Error state ── */}
           {isError && (
@@ -52,7 +52,7 @@ export default function ItemPageShell({
           )}
 
           {/* ── 3-column grid ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 md:gap-6">
             <div className="lg:col-span-1 space-y-3">{left}</div>
             <div className="lg:col-span-2 space-y-5">{right}</div>
           </div>

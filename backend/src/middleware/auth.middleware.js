@@ -4,11 +4,14 @@ import { sendError } from "../utils/response.js";
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  // Also accept token as query param (used for direct browser PDF navigation)
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : (req.query.token ?? null);
+
+  if (!token) {
     return sendError(res, "Akses ditolak, token tidak ditemukan", 401);
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

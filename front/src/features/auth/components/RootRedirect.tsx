@@ -24,6 +24,11 @@ export function RootRedirect() {
     }
   }
 
+  // Guest mode — send to barang list
+  if (localStorage.getItem("isGuest") === "true") {
+    return <Navigate to="/dashboard/barang" replace />;
+  }
+
   // Not logged in, go to login page
   return <Navigate to={ROUTES.LOGIN} replace />;
 }
