@@ -4,6 +4,7 @@ import { NavProjects } from "@/features/dashboard/components/nav-projects";
 import { NavSecondary } from "@/features/dashboard/components/nav-secondary";
 import { NavUser } from "@/features/dashboard/components/nav-user";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -21,17 +22,23 @@ import {
   IconUsersGroup,
   IconHistory,
   IconHelp,
+  IconCirclePlus,
+  IconKey,
+  IconArrowsTransferDown,
 } from "@tabler/icons-react";
 
 import { Calendar } from "@/components/ui/calendar";
+import { useNavigate } from "react-router-dom";
 import { useAuthUser, getRoleDisplay } from "@/hooks/useAuthUser";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: authUser } = useAuthUser();
+  const navigate = useNavigate();
+  const isGuest = localStorage.getItem("isGuest") === "true";
 
   const defaultUser = {
-    name: "Loading...",
-    role: "Loading...",
+    name: isGuest ? "Tamu" : "Loading...",
+    role: isGuest ? "Tamu" : "Loading...",
     avatar: "/avatars/shadcn.jpg",
   };
 
@@ -43,62 +50,96 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
     : defaultUser;
 
+  const isAdmin = authUser?.role === "admin";
+
   const data = React.useMemo(
     () => ({
       user: userData,
       umum: [
-        {
-          name: "Beranda",
-          url: "/dashboard",
-          icon: <IconLayoutGrid />,
-        },
+        ...(!isGuest && isAdmin
+          ? [{ name: "Beranda", url: "/dashboard", icon: <IconLayoutGrid /> }]
+          : []),
         {
           name: "Barang",
           url: "/dashboard/barang",
           icon: <IconBox />,
         },
       ],
-      administratif: [
-        {
-          name: "Daftar permintaan",
-          url: "/dashboard/permintaan",
-          icon: <IconMailbox />,
-        },
-        {
-          name: "Berita acara",
-          url: "/dashboard/berita",
-          icon: <IconFileDescription />,
-        },
-        {
-          name: "Lokasi",
-          url: "/dashboard/lokasi",
-          icon: <IconBuildingCommunity />,
-        },
-        {
-          name: "Pengguna",
-          url: "/dashboard/pengguna",
-          icon: <IconUsersGroup />,
-        },
-      ],
-      secondary: [
-        {
-          title: "Cari cepat",
-          url: "#",
-          icon: <IconSearch />,
-        },
-        {
-          title: "Audit log",
-          url: "/dashboard/audit",
-          icon: <IconHistory />,
-        },
-        {
-          title: "Bantuan",
-          url: "#",
-          icon: <IconHelp />,
-        },
-      ],
+      administratif: isGuest
+        ? []
+        : [
+            {
+              name: "Daftar permintaan",
+              url: "/dashboard/permintaan",
+              icon: <IconMailbox />,
+            },
+            ...(isAdmin
+              ? [
+                  {
+                    name: "Reset Password",
+                    url: "/dashboard/reset-password",
+                    icon: <IconKey />,
+                  },
+                  {
+                    name: "Berita acara",
+                    url: "/dashboard/berita",
+                    icon: <IconFileDescription />,
+                  },
+                  {
+                    name: "Lokasi",
+                    url: "/dashboard/lokasi",
+                    icon: <IconBuildingCommunity />,
+                  },
+                  {
+                    name: "Pengguna",
+                    url: "/dashboard/pengguna",
+                    icon: <IconUsersGroup />,
+                  },
+                ]
+              : [
+                  {
+                    name: "Transfer Barang",
+                    url: "/dashboard/transfer",
+                    icon: <IconArrowsTransferDown />,
+                  },
+                ]),
+          ],
+      secondary: isGuest
+        ? [
+            {
+              title: "Bantuan",
+              url: "#",
+              icon: <IconHelp />,
+            },
+          ]
+        : [
+            {
+              title: "Cari cepat",
+              url: "#",
+              icon: <IconSearch />,
+            },
+            ...(isAdmin
+              ? [
+                  {
+                    title: "Audit log",
+                    url: "/dashboard/audit",
+                    icon: <IconHistory />,
+                  },
+                  {
+                    title: "Tambahkan data",
+                    url: "#",
+                    icon: <IconCirclePlus />,
+                  },
+                ]
+              : []),
+            {
+              title: "Bantuan",
+              url: "#",
+              icon: <IconHelp />,
+            },
+          ],
     }),
-    [userData],
+    [userData, isAdmin, isGuest],
   );
 
   return (
@@ -124,12 +165,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         />
         <Separator />
         <NavProjects title="Umum" sections={data.umum} />
-        <Separator className="hidden group-data-[collapsible=icon]:block" />
-        <NavProjects title="Administratif" sections={data.administratif} />
+        {!isGuest && (
+          <>
+            <Separator className="hidden group-data-[collapsible=icon]:block" />
+            <NavProjects title="Administratif" sections={data.administratif} />
+          </>
+        )}
         <NavSecondary items={data.secondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {isGuest ? (
+          <div className="p-2">
+            <Button
+              className="w-full"
+              onClick={() => {
+                localStorage.removeItem("isGuest");
+                navigate("/login");
+              }}
+            >
+              Masuk / Daftar
+            </Button>
+          </div>
+        ) : (
+          <NavUser user={data.user} />
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

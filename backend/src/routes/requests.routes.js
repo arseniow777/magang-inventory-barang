@@ -19,7 +19,7 @@ const router = Router();
 router.use(verifyToken);
 
 router.post("/", createRequest);
-router.get("/", getRequests);
+router.get("/", checkRole("admin"), getRequests);
 router.get("/my-requests", getMyRequests);
 router.get("/my-requests/:id", getMyRequestById);
 router.get("/pending", checkRole("admin"), getPendingRequests);

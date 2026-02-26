@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLogin } from "../hooks/useLogin";
 import { loginSchema, type LoginFormData } from "../schemas/auth.schema";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,12 @@ export function LoginForm({
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [showPassword, setShowPassword] = useState(false);
   const { mutate, isPending, error } = useLogin();
+  const navigate = useNavigate();
+
+  const handleGuestLogin = () => {
+    localStorage.setItem("isGuest", "true");
+    navigate("/dashboard/barang");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +134,14 @@ export function LoginForm({
                   ) : (
                     "Masuk"
                   )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={handleGuestLogin}
+                >
+                  Masuk sebagai Tamu
                 </Button>
               </Field>
 

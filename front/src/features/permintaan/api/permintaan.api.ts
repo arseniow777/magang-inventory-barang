@@ -19,6 +19,9 @@ export const permintaanAPI = {
     return apiClient.get<RequestData[]>(`/requests${query}`);
   },
 
+  // Get own requests (PIC only — filtered server-side by req.user.id)
+  getMyRequests: () => apiClient.get<RequestData[]>(`/requests/my-requests`),
+
   // Get single request (with full items)
   getRequest: (id: number) =>
     apiClient.get<RequestDetailData>(`/requests/${id}`),

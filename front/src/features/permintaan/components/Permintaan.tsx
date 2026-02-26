@@ -3,8 +3,9 @@ import { usePermintaanFilter } from "../hooks/usePermintaanFilter";
 import { ReqGrid } from "./req-grid";
 import { TabsLine } from "@/components/tabs";
 import { ButtonGroupInput } from "./group-button";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
 
-const TABS = [
+const ALL_TABS = [
   { value: "pending", label: "Menunggu" },
   { value: "approved", label: "Disetujui" },
   { value: "rejected", label: "Ditolak" },
@@ -13,6 +14,9 @@ const TABS = [
 
 export default function Permintaan() {
   const { data: requests = [], isLoading } = usePermintaanData();
+  const { data: authUser } = useAuthUser();
+  const isAdmin = authUser?.role === Role.admin;
+  const TABS = isAdmin ? ALL_TABS : ALL_TABS.filter((t) => t.value !== "all");
   const {
     activeStatus,
     filteredRequests,

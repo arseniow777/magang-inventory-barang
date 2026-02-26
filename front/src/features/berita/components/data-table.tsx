@@ -142,10 +142,22 @@ const formatDate = (dateString: string) =>
     year: "numeric",
   });
 
-const handleDownload = (reportId: number) => {
-  const API_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
-  window.open(`${API_URL}/reports/${reportId}/download`, "_blank");
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+
+const handleDownload = (reportId: number, reportNumber: string) => {
+  const token = localStorage.getItem("token");
+  fetch(`${API_URL}/reports/${reportId}/download`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((res) => res.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${reportNumber}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 };
 
 // Drag handle - commented out until @dnd-kit is installed
@@ -250,9 +262,11 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleDownload(row.original.id)}
+          onClick={() =>
+            handleDownload(row.original.id, row.original.report_number)
+          }
         >
-          <IconDownload className="h-4 w-4 mr-2" />
+          <IconDownload className="h-4 w-4 mr-1" />
           Download
         </Button>
       </div>

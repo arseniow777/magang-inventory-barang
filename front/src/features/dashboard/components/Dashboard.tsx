@@ -16,13 +16,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { IconSun, IconMoon } from "@tabler/icons-react";
 import { useEffect, useState, Fragment } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
+import { AdminRoute } from "@/features/auth/components/AdminRoute";
+import { GuestRoute } from "@/features/auth/components/GuestRoute";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../barang/pages/CreatePage";
 import ItemDetailPage from "../../barang/pages/ItemDetailPage";
 import ItemUnitDetailPage from "../../barang/pages/ItemUnitDetailPage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
 import PermintaanPage from "../../permintaan/pages/PermintaanPage";
+import PasswordResetsPage from "../../permintaan/pages/PasswordResetsPage";
 import BeritaPage from "../../berita/pages/BeritaPage";
 import AuditPage from "../../audit/pages/AuditPage";
 import PenggunaPage from "../../pengguna/pages/PenggunaPage";
@@ -30,6 +34,8 @@ import LokasiPage from "../../lokasi/pages/LokasiPage";
 import NotificationsPage from "@/features/notifikasi/pages/NotificationsPage";
 import ProfilPage from "../../akun/pages/ProfilPage";
 import TambahPenggunaPage from "@/features/pengguna/pages/TambahPenggunaPage";
+import TransferPage from "../../transfer/pages/TransferPage";
+import { TransferCartBadge } from "../../transfer/components/TransferCartBadge";
 import EditPenggunaPage from "@/features/pengguna/pages/EditPenggunaPage";
 import TambahLokasiPage from "@/features/lokasi/pages/TambahLokasiPage";
 import EditLokasiPage from "@/features/lokasi/pages/EditLokasiPage";
@@ -40,17 +46,21 @@ const segmentLabels: { [key: string]: string } = {
   create: "Tambah Barang",
   units: "Unit",
   permintaan: "Daftar Permintaan",
+  "reset-password": "Reset Password",
   berita: "Berita Acara",
   lokasi: "Lokasi",
   pengguna: "Pengguna",
   audit: "Audit",
   users: "Users",
   notification: "Notifikasi",
+  transfer: "Transfer Barang",
 };
 
 export default function Dashboard() {
   const [isDark, setIsDark] = useState(false);
   const location = useLocation();
+  const { data: authUser } = useAuthUser();
+  const isAdmin = authUser?.role === Role.admin;
 
   const getBreadcrumbs = () => {
     const segments = location.pathname.split("/").filter(Boolean);
@@ -125,58 +135,143 @@ export default function Dashboard() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="rounded-lg"
-          >
-            {isDark ? (
-              <IconSun className="h-5 w-5" />
-            ) : (
-              <IconMoon className="h-5 w-5" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            {!isAdmin && <TransferCartBadge />}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-lg"
+            >
+              {isDark ? (
+                <IconSun className="h-5 w-5" />
+              ) : (
+                <IconMoon className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </header>
 
         {/* Dynamic Content based on Route */}
-        <div className="flex flex-1 flex-col p-7">
+        <div className="flex flex-1 flex-col p-4 md:p-7">
           <Routes>
-            {/* Umum */}
-            <Route path="/" element={<BerandaPage />} />
+            {/* Root — admin ke Beranda, PIC ke Barang */}
+            <Route
+              path="/"
+              element={
+                isAdmin ? (
+                  <BerandaPage />
+                ) : (
+                  <Navigate to="/dashboard/barang" replace />
+                )
+              }
+            />
+
+            {/* Umum — semua role */}
             <Route path="/barang" element={<BarangPage />} />
-            <Route path="/barang/create" element={<CreatePage />} />
             <Route path="/barang/:id" element={<ItemDetailPage />} />
             <Route
               path="/barang/:itemId/units/:unitId"
               element={<ItemUnitDetailPage />}
             />
+            <Route
+              path="/users/notifikasi"
+              element={
+                <GuestRoute>
+                  <NotificationsPage />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/users/profil"
+              element={
+                <GuestRoute>
+                  <ProfilPage />
+                </GuestRoute>
+              }
+            />
 
-            {/* Administratif */}
-            <Route path="/permintaan" element={<PermintaanPage />} />
-            <Route path="/berita" element={<BeritaPage />} />
-            <Route path="/lokasi" element={<LokasiPage />} />
-            <Route path="/pengguna" element={<PenggunaPage />} />
-
-            {/* lokasi */}
-            <Route path="/lokasi/tambah" element={<TambahLokasiPage />} />
-            <Route path="/lokasi/edit/:id" element={<EditLokasiPage />} />
-
-            {/* Secondary */}
-            <Route path="/audit" element={<AuditPage />} />
-            <Route path="/users/notifikasi" element={<NotificationsPage />} />
-            <Route path="/users/profil" element={<ProfilPage />} />
+            {/* Admin only */}
+            <Route
+              path="/barang/create"
+              element={
+                <AdminRoute>
+                  <CreatePage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/permintaan"
+              element={
+                <GuestRoute>
+                  <PermintaanPage />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/transfer"
+              element={
+                <GuestRoute>
+                  <TransferPage />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <AdminRoute>
+                  <PasswordResetsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/berita"
+              element={
+                <AdminRoute>
+                  <BeritaPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/lokasi"
+              element={
+                <AdminRoute>
+                  <LokasiPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/pengguna"
+              element={
+                <AdminRoute>
+                  <PenggunaPage />
+                </AdminRoute>
+              }
+            />
             <Route
               path="/pengguna/tambahPengguna"
-              element={<TambahPenggunaPage />}
+              element={
+                <AdminRoute>
+                  <TambahPenggunaPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/audit"
+              element={
+                <AdminRoute>
+                  <AuditPage />
+                </AdminRoute>
+              }
             />
             <Route path="/pengguna/edit/:id" element={<EditPenggunaPage />} />
+
             <Route
               path="/*"
               element={
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-4">
                   <div className="flex items-center justify-center text-gray-500 flex-1">
-                    <p className="text-lg">Coming soon...</p>
+                    <p className="text-lg">404</p>
                   </div>
                 </div>
               }

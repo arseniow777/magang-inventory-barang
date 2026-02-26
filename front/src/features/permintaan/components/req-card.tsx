@@ -18,6 +18,7 @@ import type { RequestData } from "../types/permintaan.types";
 import { usePermintaanAction } from "../hooks/usePermintaanAction";
 import { ReqDetailDialog } from "./req-detail-dialog";
 import { IconUser, IconArrowNarrowRight } from "@tabler/icons-react";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
 // ── helpers ────────────────────────────────────────────────────────
 const REQUEST_TYPE_LABEL: Record<string, string> = {
   borrow: "Peminjaman",
@@ -54,6 +55,8 @@ interface ReqCardProps {
 export default function ReqCard({ data }: ReqCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { approve, reject } = usePermintaanAction();
+  const { data: authUser } = useAuthUser();
+  const isAdmin = authUser?.role === Role.admin;
 
   const hasLocation =
     data.request_type === "borrow" || data.request_type === "transfer";
@@ -147,7 +150,7 @@ export default function ReqCard({ data }: ReqCardProps) {
 
         <CardFooter>
           <div className="flex justify-between items-center w-full gap-2">
-            {isPending ? (
+            {isPending && isAdmin ? (
               <div className="flex gap-2">
                 <Button
                   size="sm"
