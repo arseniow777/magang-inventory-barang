@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTransferCart } from "@/features/transfer/hooks/useTransferCart";
+import { useAuthUser, Role } from "@/hooks/useAuthUser";
 
 interface AddToCartSectionProps {
   itemId: number;
@@ -21,6 +22,9 @@ export function AddToCartSection({
 }: AddToCartSectionProps) {
   const [addQty, setAddQty] = useState(1);
   const { addQuantityItem } = useTransferCart();
+  const { data: authUser } = useAuthUser();
+
+  if (authUser?.role !== Role.pic) return null;
 
   const handleAddToCart = () => {
     addQuantityItem({
