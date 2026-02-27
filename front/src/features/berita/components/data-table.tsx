@@ -1,26 +1,7 @@
 "use client";
 
 import * as React from "react";
-// Drag and drop - commented out until packages are installed
-// import {
-//   closestCenter,
-//   DndContext,
-//   KeyboardSensor,
-//   MouseSensor,
-//   TouchSensor,
-//   useSensor,
-//   useSensors,
-//   type DragEndEvent,
-//   type UniqueIdentifier,
-// } from "@dnd-kit/core";
-// import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-// import {
-//   arrayMove,
-//   SortableContext,
-//   useSortable,
-//   verticalListSortingStrategy,
-// } from "@dnd-kit/sortable";
-// import { CSS } from "@dnd-kit/utilities";
+import { useState, useMemo } from "react";
 import {
   IconCheck,
   IconChevronDown,
@@ -29,11 +10,8 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDownload,
-  // IconDotsVertical,
-  // IconGripVertical,
   IconLayoutColumns,
-  IconPlus,
-  // IconTrendingUp,
+  IconSearch,
 } from "@tabler/icons-react";
 import {
   flexRender,
@@ -46,47 +24,21 @@ import {
   useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
-  // type Row,
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-// Charts - commented out until recharts is installed
-// import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-// Toast - commented out until sonner is installed
-// import { toast } from "sonner";
 import { z } from "zod";
-
-// import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// Charts - commented out until components are created
-// import {
-//   ChartContainer,
-//   ChartTooltip,
-//   ChartTooltipContent,
-//   type ChartConfig,
-// } from "@/components/ui/chart";
-// Checkbox - commented out until component is created
-// import { Checkbox } from "@/components/ui/checkbox";
-// Drawer - commented out until component is created
-// import {
-//   Drawer,
-//   DrawerClose,
-//   DrawerContent,
-//   DrawerDescription,
-//   DrawerFooter,
-//   DrawerHeader,
-//   DrawerTitle,
-//   DrawerTrigger,
-// } from "@/components/ui/drawer";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -94,7 +46,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -103,7 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsLine } from "@/components/tabs";
 
 export const schema = z.object({
   id: z.number(),
@@ -129,10 +80,10 @@ export const schema = z.object({
 });
 
 const reportTypeLabels: Record<string, string> = {
-  BORROW: "Peminjaman",
-  RETURN: "Pengembalian",
-  DAMAGE: "Kerusakan",
-  LOST: "Kehilangan",
+  borrow: "Peminjaman",
+  transfer: "Transfer",
+  sell: "Penjualan",
+  demolish: "Pemusnahan",
 };
 
 const formatDate = (dateString: string) =>
@@ -159,26 +110,6 @@ const handleDownload = (reportId: number, reportNumber: string) => {
       URL.revokeObjectURL(url);
     });
 };
-
-// Drag handle - commented out until @dnd-kit is installed
-// function DragHandle({ id }: { id: number }) {
-//   const { attributes, listeners } = useSortable({
-//     id,
-//   });
-//
-//   return (
-//     <Button
-//       {...attributes}
-//       {...listeners}
-//       variant="ghost"
-//       size="icon"
-//       className="text-muted-foreground size-7 hover:bg-transparent"
-//     >
-//       <IconGripVertical className="text-muted-foreground size-3" />
-//       <span className="sr-only">Drag to reorder</span>
-//     </Button>
-//   );
-// }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
@@ -274,38 +205,13 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
 ];
 
-// DraggableRow - commented out until @dnd-kit is installed
-// function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-//   const { transform, transition, setNodeRef, isDragging } = useSortable({
-//     id: row.original.id,
-//   });
-//
-//   return (
-//     <TableRow
-//       data-state={row.getIsSelected() && "selected"}
-//       data-dragging={isDragging}
-//       ref={setNodeRef}
-//       className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-//       style={{
-//         transform: CSS.Transform.toString(transform),
-//         transition: transition,
-//       }}
-//     >
-//       {row.getVisibleCells().map((cell) => (
-//         <TableCell key={cell.id}>
-//           {flexRender(cell.column.columnDef.cell, cell.getContext())}
-//         </TableCell>
-//       ))}
-//     </TableRow>
-//   );
-// }
-
 export function DataTable({
   data: initialData,
 }: {
   data: z.infer<typeof schema>[];
 }) {
-  const [data] = React.useState(() => initialData);
+  const [activeType, setActiveType] = useState("all");
+  const [search, setSearch] = useState("");
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -318,21 +224,31 @@ export function DataTable({
     pageSize: 10,
   });
 
-  // Drag and drop - commented out until @dnd-kit is installed
-  // const sortableId = React.useId();
-  // const sensors = useSensors(
-  //   useSensor(MouseSensor, {}),
-  //   useSensor(TouchSensor, {}),
-  //   useSensor(KeyboardSensor, {}),
-  // );
-  //
-  // const dataIds = React.useMemo<UniqueIdentifier[]>(
-  //   () => data?.map(({ id }) => id) || [],
-  //   [data],
-  // );
+  const filteredData = useMemo(() => {
+    let result = initialData;
+
+    if (activeType !== "all") {
+      result = result.filter((r) => r.report_type === activeType);
+    }
+
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.report_number.toLowerCase().includes(q) ||
+          r.request?.request_code?.toLowerCase().includes(q) ||
+          r.request?.pic?.name?.toLowerCase().includes(q) ||
+          r.request?.destination_location?.building_name
+            ?.toLowerCase()
+            .includes(q),
+      );
+    }
+
+    return result;
+  }, [initialData, activeType, search]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -356,59 +272,37 @@ export function DataTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  // Drag and drop handler - commented out until @dnd-kit is installed
-  // function handleDragEnd(event: DragEndEvent) {
-  //   const { active, over } = event;
-  //   if (active && over && active.id !== over.id) {
-  //     setData((data) => {
-  //       const oldIndex = dataIds.indexOf(active.id);
-  //       const newIndex = dataIds.indexOf(over.id);
-  //       return arrayMove(data, oldIndex, newIndex);
-  //     });
-  //   }
-  // }
-
   return (
-    <Tabs
-      defaultValue="outline"
-      className="w-full flex-col justify-start gap-6"
-    >
-      <div className="flex items-center justify-between">
-        <Label htmlFor="view-selector" className="sr-only">
-          View
-        </Label>
-        <Select defaultValue="outline">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
-          </SelectContent>
-        </Select>
-        <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
-        </TabsList>
+    <div className="w-full flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <TabsLine
+          tabs={[
+            { value: "all", label: "Semua" },
+            { value: "borrow", label: "Peminjaman" },
+            { value: "transfer", label: "Transfer" },
+            { value: "sell", label: "Penjualan" },
+            { value: "demolish", label: "Pemusnahan" },
+          ]}
+          activeTab={activeType}
+          onTabChange={setActiveType}
+        />
         <div className="flex items-center gap-2">
+          <ButtonGroup>
+            <Input
+              placeholder="Cari nomor / permintaan / PIC..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-72"
+            />
+            <Button variant="outline" aria-label="Search">
+              <IconSearch />
+            </Button>
+          </ButtonGroup>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
+                <span className="hidden lg:inline">Kolom</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -420,49 +314,39 @@ export function DataTable({
                     typeof column.accessorFn !== "undefined" &&
                     column.getCanHide(),
                 )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
         </div>
       </div>
-      <TabsContent
-        value="outline"
-        className="relative flex flex-col gap-4 overflow-auto"
-      >
+
+      <div className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
@@ -489,21 +373,17 @@ export function DataTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    Tidak ada data.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
+
         <div className="flex items-center justify-between px-4">
-          {/* Row selection display - commented out until Checkbox is implemented */}
-          {/* <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div> */}
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            Total: {table.getFilteredRowModel().rows.length} berita acara
+            Total: {filteredData.length} berita acara
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
@@ -512,9 +392,7 @@ export function DataTable({
               </Label>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
+                onValueChange={(value) => table.setPageSize(Number(value))}
               >
                 <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                   <SelectValue
@@ -577,66 +455,7 @@ export function DataTable({
             </div>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center">
-          <p className="text-muted-foreground">Coming soon</p>
-        </div>
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }
-
-// Chart data and viewer - commented out until recharts and drawer components are installed
-// const chartData = [
-//   { month: "January", desktop: 186, mobile: 80 },
-//   { month: "February", desktop: 305, mobile: 200 },
-//   { month: "March", desktop: 237, mobile: 120 },
-//   { month: "April", desktop: 73, mobile: 190 },
-//   { month: "May", desktop: 209, mobile: 130 },
-//   { month: "June", desktop: 214, mobile: 140 },
-// ];
-//
-// const chartConfig = {
-//   desktop: {
-//     label: "Desktop",
-//     color: "var(--primary)",
-//   },
-//   mobile: {
-//     label: "Mobile",
-//     color: "var(--primary)",
-//   },
-// } satisfies ChartConfig;
-//
-// function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
-//   const isMobile = useIsMobile();
-//
-//   return (
-//     <Drawer direction={isMobile ? "bottom" : "right"}>
-//       <DrawerTrigger asChild>
-//         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-//           {item.header}
-//         </Button>
-//       </DrawerTrigger>
-//       <DrawerContent>
-//         {/* ... drawer content ... */}
-//       </DrawerContent>
-//     </Drawer>
-//   );
-// }

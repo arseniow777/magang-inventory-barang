@@ -13,7 +13,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import {
-  IconSearch,
+  // IconSearch,
   IconMailbox,
   IconLayoutGrid,
   IconBox,
@@ -22,7 +22,7 @@ import {
   IconUsersGroup,
   IconHistory,
   IconHelp,
-  IconCirclePlus,
+  // IconCirclePlus,
   IconKey,
   IconArrowsTransferDown,
 } from "@tabler/icons-react";
