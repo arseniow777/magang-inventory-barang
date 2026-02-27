@@ -134,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               : []),
             {
               title: "Bantuan",
-              url: "#",
+              url: "/dashboard/bantuan",
               icon: <IconHelp />,
             },
           ],

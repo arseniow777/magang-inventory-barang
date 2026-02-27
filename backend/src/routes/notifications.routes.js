@@ -3,6 +3,7 @@ import {
   getNotifications,
   getNotificationById,
   deleteNotification,
+  contactAdminFromWeb,
 } from "../controllers/notifications.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
@@ -10,6 +11,7 @@ const router = Router();
 
 router.use(verifyToken);
 
+router.post("/contact-admin/web", contactAdminFromWeb);
 router.get("/", getNotifications);
 router.get("/:id", getNotificationById);
 router.delete("/:id", deleteNotification);

@@ -14,9 +14,13 @@ export const getNotifications = async (req, res, next) => {
           },
         },
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: "desc" },
     });
-    return sendSuccess(res, "Data notifications berhasil diambil", notifications);
+    return sendSuccess(
+      res,
+      "Data notifications berhasil diambil",
+      notifications,
+    );
   } catch (err) {
     next(err);
   }
@@ -27,7 +31,7 @@ export const getNotificationById = async (req, res, next) => {
     const { id } = req.params;
 
     const notification = await prisma.notifications.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
     });
 
     if (!notification) {
@@ -35,7 +39,11 @@ export const getNotificationById = async (req, res, next) => {
     }
 
     if (notification.user_id !== req.user.id) {
-      return sendError(res, "Anda tidak memiliki akses ke notification ini", 403);
+      return sendError(
+        res,
+        "Anda tidak memiliki akses ke notification ini",
+        403,
+      );
     }
 
     return sendSuccess(res, "Data notification berhasil diambil", notification);
@@ -44,14 +52,12 @@ export const getNotificationById = async (req, res, next) => {
   }
 };
 
-
-
 export const deleteNotification = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const notification = await prisma.notifications.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
     });
 
     if (!notification) {
@@ -59,14 +65,50 @@ export const deleteNotification = async (req, res, next) => {
     }
 
     if (notification.user_id !== req.user.id) {
-      return sendError(res, "Anda tidak memiliki akses ke notification ini", 403);
+      return sendError(
+        res,
+        "Anda tidak memiliki akses ke notification ini",
+        403,
+      );
     }
 
     await prisma.notifications.delete({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
     });
 
     return sendSuccess(res, "Notification berhasil dihapus");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const contactAdminFromWeb = async (req, res, next) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return sendError(res, "Message wajib diisi", 400);
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: req.user.id },
+    });
+
+    const admins = await prisma.users.findMany({ where: { role: "admin" } });
+
+    await Promise.all(
+      admins.map((admin) =>
+        prisma.notifications.create({
+          data: {
+            user_id: admin.id,
+            message: `Pesan dari ${user.name} (${user.username}): ${message}`,
+            type: "system",
+          },
+        }),
+      ),
+    );
+
+    return sendSuccess(res, "Pesan berhasil dikirim ke admin");
   } catch (err) {
     next(err);
   }

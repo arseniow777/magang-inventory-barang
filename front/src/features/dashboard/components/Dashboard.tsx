@@ -39,6 +39,7 @@ import { TransferCartBadge } from "../../transfer/components/TransferCartBadge";
 import EditPenggunaPage from "@/features/pengguna/pages/EditPenggunaPage";
 import TambahLokasiPage from "@/features/lokasi/pages/TambahLokasiPage";
 import EditLokasiPage from "@/features/lokasi/pages/EditLokasiPage";
+import BantuanPage from "@/features/bantuan/pages/BantuanPage";
 
 const segmentLabels: { [key: string]: string } = {
   dashboard: "Dashboard",
@@ -279,6 +280,15 @@ export default function Dashboard() {
               element={
                 <AdminRoute>
                   <AuditPage />
+                </AdminRoute>
+              }
+            />
+            <Route path="/pengguna/edit/:id" element={<EditPenggunaPage />} />
+            <Route
+              path="/bantuan"
+              element={
+                <AdminRoute>
+                  <BantuanPage />
                 </AdminRoute>
               }
             />
