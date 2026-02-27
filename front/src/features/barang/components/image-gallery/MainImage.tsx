@@ -19,7 +19,7 @@ export function MainImage({
 }: MainImageProps) {
   return (
     <>
-      <div className="w-full aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+      <div className="w-full aspect-square overflow-hidden rounded-sm bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -37,7 +37,7 @@ export function MainImage({
             <button
               key={p.id}
               onClick={() => onSelectPhoto(p.file_path)}
-              className={`h-16 w-16 overflow-hidden border-2 transition-colors ${
+              className={`h-16 w-16 overflow-hidden rounded-sm border-2 transition-colors ${
                 (selectedPhoto ?? photos[0]?.file_path) === p.file_path
                   ? "border-primary"
                   : "border-transparent"

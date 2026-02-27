@@ -22,8 +22,8 @@ import { AdminRoute } from "@/features/auth/components/AdminRoute";
 import { GuestRoute } from "@/features/auth/components/GuestRoute";
 import BarangPage from "../../barang/pages/BarangPage";
 import CreatePage from "../../barang/pages/CreatePage";
-import ItemDetailPage from "../../barang/pages/ItemDetailPage";
-import ItemUnitDetailPage from "../../barang/pages/ItemUnitDetailPage";
+import ItemPage from "../../barang/pages/ItemPage";
+import ItemUnitPage from "../../barang/pages/ItemUnitPage";
 import BerandaPage from "../../beranda/pages/BerandaPage";
 import PermintaanPage from "../../permintaan/pages/PermintaanPage";
 import PasswordResetsPage from "../../permintaan/pages/PasswordResetsPage";
@@ -171,11 +171,8 @@ export default function Dashboard() {
 
             {/* Umum — semua role */}
             <Route path="/barang" element={<BarangPage />} />
-            <Route path="/barang/:id" element={<ItemDetailPage />} />
-            <Route
-              path="/barang/:itemId/units/:unitId"
-              element={<ItemUnitDetailPage />}
-            />
+            <Route path="/barang/:id" element={<ItemPage />} />
+            <Route path="/barang/:itemId/:unitId" element={<ItemUnitPage />} />
             <Route
               path="/users/notifikasi"
               element={
