@@ -4,16 +4,17 @@ import {
   getItemUnitById,
   getItemUnitByCode,
   updateItemUnit,
+  getItemUnitHistory,
 } from "../controllers/itemUnits.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { checkRole } from "../middleware/role.middleware.js";
 
 const router = Router();
 
-
 router.get("/", getItemUnits);
 router.get("/code/:unit_code", getItemUnitByCode);
 router.get("/:id", getItemUnitById);
+router.get("/:id/history", getItemUnitHistory);
 
 router.use(verifyToken);
 

@@ -113,11 +113,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
           ]
         : [
-            {
-              title: "Cari cepat",
-              url: "#",
-              icon: <IconSearch />,
-            },
+            // {
+            //   title: "Cari cepat",
+            //   url: "#",
+            //   icon: <IconSearch />,
+            // },
             ...(isAdmin
               ? [
                   {
@@ -125,11 +125,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     url: "/dashboard/audit",
                     icon: <IconHistory />,
                   },
-                  {
-                    title: "Tambahkan data",
-                    url: "#",
-                    icon: <IconCirclePlus />,
-                  },
+                  // {
+                  //   title: "Tambahkan data",
+                  //   url: "#",
+                  //   icon: <IconCirclePlus />,
+                  // },
                 ]
               : []),
             {

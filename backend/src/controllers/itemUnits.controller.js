@@ -12,8 +12,8 @@ export const getItemUnits = async (req, res, next) => {
     if (location_id) where.location_id = parseInt(location_id);
     if (search) {
       where.OR = [
-        { unit_code: { contains: search, mode: 'insensitive' } },
-        { item: { name: { contains: search, mode: 'insensitive' } } },
+        { unit_code: { contains: search, mode: "insensitive" } },
+        { item: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
 
@@ -21,7 +21,7 @@ export const getItemUnits = async (req, res, next) => {
       where,
       include: {
         item: {
-          include: { photos: true }
+          include: { photos: true },
         },
         location: true,
       },
@@ -41,7 +41,7 @@ export const getItemUnitById = async (req, res, next) => {
       where: { id: parseInt(id) },
       include: {
         item: {
-          include: { photos: true }
+          include: { photos: true },
         },
         location: true,
         log_histories: {
@@ -50,8 +50,8 @@ export const getItemUnitById = async (req, res, next) => {
             to_location: true,
             moved_by: true,
           },
-          orderBy: { moved_at: 'desc' }
-        }
+          orderBy: { moved_at: "desc" },
+        },
       },
     });
 
@@ -73,7 +73,7 @@ export const getItemUnitByCode = async (req, res, next) => {
       where: { unit_code },
       include: {
         item: {
-          include: { photos: true }
+          include: { photos: true },
         },
         location: true,
         log_histories: {
@@ -82,8 +82,8 @@ export const getItemUnitByCode = async (req, res, next) => {
             to_location: true,
             moved_by: true,
           },
-          orderBy: { moved_at: 'desc' }
-        }
+          orderBy: { moved_at: "desc" },
+        },
       },
     });
 
@@ -102,9 +102,9 @@ export const updateItemUnit = async (req, res, next) => {
     const { id } = req.params;
     const { condition, status, location_id } = req.body;
 
-    const existing = await prisma.itemUnits.findUnique({ 
+    const existing = await prisma.itemUnits.findUnique({
       where: { id: parseInt(id) },
-      include: { location: true }
+      include: { location: true },
     });
 
     if (!existing) {
@@ -147,6 +147,49 @@ export const updateItemUnit = async (req, res, next) => {
     });
 
     return sendSuccess(res, "Item unit berhasil diupdate", unit);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getItemUnitHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const unit = await prisma.itemUnits.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!unit) {
+      return sendError(res, "Item unit tidak ditemukan", 404);
+    }
+
+    const histories = await prisma.itemLogHistory.findMany({
+      where: { unit_id: parseInt(id) },
+      include: {
+        from_location: true,
+        to_location: true,
+        moved_by: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            role: true,
+          },
+        },
+        request: {
+          select: {
+            id: true,
+            request_code: true,
+            request_type: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: { moved_at: "desc" },
+    });
+
+    return sendSuccess(res, "Riwayat lokasi berhasil diambil", histories);
   } catch (err) {
     next(err);
   }

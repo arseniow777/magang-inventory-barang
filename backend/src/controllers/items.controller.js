@@ -239,7 +239,7 @@ export const getItemById = async (req, res, next) => {
 export const updateItem = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, category } = req.body;
+    const { name, category, procurement_year } = req.body;
 
     const existing = await prisma.itemMasters.findUnique({
       where: { id: parseInt(id) },
@@ -251,13 +251,40 @@ export const updateItem = async (req, res, next) => {
 
     const updateData = {};
     if (name) updateData.name = name;
-    if (category) updateData.category = category;
+    if (procurement_year)
+      updateData.procurement_year = parseInt(procurement_year);
+
+    if (category || procurement_year) {
+      updateData.model_code = await generateModelCode(
+        category || existing.category,
+        procurement_year
+          ? parseInt(procurement_year)
+          : existing.procurement_year,
+      );
+    }
 
     const item = await prisma.itemMasters.update({
       where: { id: parseInt(id) },
       data: updateData,
       include: { photos: true, units: true },
     });
+
+    if (category || procurement_year) {
+      const existingUnits = await prisma.itemUnits.findMany({
+        where: { item_id: parseInt(id) },
+      });
+
+      await Promise.all(
+        existingUnits.map((unit) => {
+          const sequence = unit.unit_code.split("-")[1];
+          const newUnitCode = `${item.model_code}-${sequence}`;
+          return prisma.itemUnits.update({
+            where: { id: unit.id },
+            data: { unit_code: newUnitCode },
+          });
+        }),
+      );
+    }
 
     await createAuditLog({
       actor_id: req.user.id,

@@ -20,8 +20,8 @@ export const getUserByTelegram = async (req, res, next) => {
         name: true,
         role: true,
         phone_number: true,
-        created_at: true
-      }
+        created_at: true,
+      },
     });
 
     if (!user) return sendError(res, "User tidak ditemukan", 404);
@@ -43,9 +43,9 @@ export const getLatestRequestByTelegram = async (req, res, next) => {
       where: { pic_id: user.id },
       include: {
         destination_location: true,
-        _count: { select: { request_items: true } }
+        _count: { select: { request_items: true } },
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: "desc" },
     });
 
     if (!request) return sendError(res, "Belum ada riwayat request", 404);
@@ -66,15 +66,19 @@ export const getLatestReportByTelegram = async (req, res, next) => {
     const report = await prisma.officialReports.findFirst({
       where: {
         request: { pic_id: user.id },
-        is_approved: true
+        is_approved: true,
       },
       include: { request: true },
-      orderBy: { issued_date: 'desc' }
+      orderBy: { issued_date: "desc" },
     });
 
     if (!report) return sendError(res, "Belum ada riwayat berita acara", 404);
 
-    return sendSuccess(res, "Data berita acara terbaru berhasil diambil", report);
+    return sendSuccess(
+      res,
+      "Data berita acara terbaru berhasil diambil",
+      report,
+    );
   } catch (err) {
     next(err);
   }
@@ -86,11 +90,12 @@ export const downloadReportForBot = async (req, res, next) => {
     const { id } = req.params;
 
     const report = await prisma.officialReports.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
     });
 
     if (!report) return sendError(res, "Report tidak ditemukan", 404);
-    if (!report.is_approved) return sendError(res, "Report belum diapprove", 403);
+    if (!report.is_approved)
+      return sendError(res, "Report belum diapprove", 403);
 
     const filePath = path.join(__dirname, "../../", report.file_path);
 
@@ -99,7 +104,10 @@ export const downloadReportForBot = async (req, res, next) => {
     }
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=${report.report_number}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${report.report_number}.pdf`,
+    );
 
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
@@ -119,18 +127,18 @@ export const contactAdmin = async (req, res, next) => {
     const user = await prisma.users.findFirst({ where: { telegram_id } });
     if (!user) return sendError(res, "User tidak ditemukan", 404);
 
-    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+    const admins = await prisma.users.findMany({ where: { role: "admin" } });
 
     await Promise.all(
-      admins.map(admin =>
+      admins.map((admin) =>
         prisma.notifications.create({
           data: {
             user_id: admin.id,
             message: `Pesan dari ${user.name} (${user.username}): ${message}`,
-            type: 'system'
-          }
-        })
-      )
+            type: "system",
+          },
+        }),
+      ),
     );
 
     return sendSuccess(res, "Pesan berhasil dikirim ke admin");

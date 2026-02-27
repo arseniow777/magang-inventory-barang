@@ -4,11 +4,12 @@ import {
   getLatestRequestByTelegram,
   getLatestReportByTelegram,
   downloadReportForBot,
-  contactAdmin
+  contactAdmin,
 } from "../controllers/bot.controller.js";
 
 const router = Router();
 
+// router.post("/disconnect/:telegram_id", disconnectTelegram);
 router.get("/user/:telegram_id", getUserByTelegram);
 router.get("/requests/:telegram_id", getLatestRequestByTelegram);
 router.get("/reports/:telegram_id", getLatestReportByTelegram);
