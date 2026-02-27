@@ -36,19 +36,19 @@ export default function ItemImageGallery({
 
   return (
     <>
-      <MainImage
-        photos={photos}
-        imageUrl={imageUrl}
-        itemName={itemName}
-        selectedPhoto={selectedPhoto}
-        onSelectPhoto={onSelectPhoto}
-      />
       <ItemTitleStats
         itemName={itemName}
         modelCode={modelCode}
         totalUnits={totalUnits}
         availableUnits={availableUnits}
         goodUnits={goodUnits}
+      />
+      <MainImage
+        photos={photos}
+        imageUrl={imageUrl}
+        itemName={itemName}
+        selectedPhoto={selectedPhoto}
+        onSelectPhoto={onSelectPhoto}
       />
       {showCartButton && (
         <AddToCartSection

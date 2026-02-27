@@ -15,18 +15,18 @@ export function ItemTitleStats({
 }: ItemTitleStatsProps) {
   return (
     <>
-      <div className="flex items-center mb-5">
+      <div className="flex w-full items-center mb-5">
         <div>
-          <h1 className="text-2xl font-semibold leading-tight mb-1 mt-2">
+          <h1 className="text-3xl font-semibold leading-tight mb-2">
             {itemName ?? "—"}
           </h1>
-          <p className="text-sm text-muted-foreground font-mono tracking-wider">
+          <p className="text-md text-muted-foreground font-mono tracking-wider">
             {modelCode ?? ""}
           </p>
         </div>
       </div>
 
-      {totalUnits !== undefined && (
+      {/* {totalUnits !== undefined && (
         <div className="flex flex-row gap-4">
           <div className="flex gap-2">
             <p className="font-semibold">{totalUnits}</p>
@@ -41,7 +41,7 @@ export function ItemTitleStats({
             <p className="text-accent-foreground/50">Kondisi Baik</p>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }

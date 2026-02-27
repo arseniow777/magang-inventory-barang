@@ -7,12 +7,22 @@ interface ItemInfoPanelProps {
   item?: ItemMasterDetail;
   isAdmin: boolean;
   onEditClick: () => void;
+  itemName?: string;
+  modelCode?: string;
+  totalUnits?: number;
+  availableUnits?: number;
+  goodUnits?: number;
 }
 
 export function ItemInfoPanel({
   item,
   isAdmin,
   onEditClick,
+  itemName,
+  modelCode,
+  totalUnits,
+  availableUnits,
+  goodUnits,
 }: ItemInfoPanelProps) {
   const infoRows = [
     { label: "Kategori", value: item?.category ?? "—" },
@@ -36,6 +46,35 @@ export function ItemInfoPanel({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
+        <>
+          <div className="flex w-full items-center mb-5">
+            <div>
+              <h1 className="text-2xl font-semibold leading-tight mb-1">
+                {itemName ?? "—"}
+              </h1>
+              <p className="text-sm text-muted-foreground font-mono tracking-wider">
+                {modelCode ?? ""}
+              </p>
+            </div>
+          </div>
+
+          {totalUnits !== undefined && (
+            <div className="flex flex-row gap-4">
+              <div className="flex gap-2">
+                <p className="font-semibold">{totalUnits}</p>
+                <p className="text-accent-foreground/50">Unit</p>
+              </div>
+              <div className="flex gap-2">
+                <p className="font-semibold">{availableUnits}</p>
+                <p className="text-accent-foreground/50">Tersedia</p>
+              </div>
+              <div className="flex gap-2">
+                <p className="font-semibold">{goodUnits}</p>
+                <p className="text-accent-foreground/50">Kondisi Baik</p>
+              </div>
+            </div>
+          )}
+        </>
         <p className="text-sm font-semibold">Informasi</p>
         {isAdmin && (
           <Button

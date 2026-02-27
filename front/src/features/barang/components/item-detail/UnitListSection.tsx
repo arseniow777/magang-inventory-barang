@@ -34,10 +34,8 @@ export function UnitListSection({ units, itemId }: UnitListSectionProps) {
           {units.map((unit) => (
             <button
               key={unit.id}
-              onClick={() =>
-                navigate(`/dashboard/barang/${itemId}/units/${unit.id}`)
-              }
-              className="w-full text-left flex items-center justify-between rounded-md bg-accent/50 border border-accent px-4 py-3 text-sm hover:bg-accent transition-colors cursor-pointer"
+              onClick={() => navigate(`/dashboard/barang/${itemId}/${unit.id}`)}
+              className="w-full text-left flex items-center justify-between rounded-sm bg-accent/15 border border-border px-4 py-3 text-sm hover:bg-accent transition-colors cursor-pointer"
             >
               <div>
                 <p className="font-mono font-medium text-sm">

@@ -27,23 +27,11 @@ export default function ItemPageShell({
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div className="w-auto flex flex-col md:flex-row gap-4">
-        <Button variant="outline" size="sm" onClick={onBack} className="w-auto">
+        <Button variant="ghost" size="sm" onClick={onBack} className="w-auto">
           <IconArrowLeft className="h-4 w-4" />
         </Button>
 
         <div className="w-full">
-          {/* ── Header ── */}
-          {/* <div className="flex items-center mb-5">
-            <div>
-              <h1 className="text-2xl font-semibold leading-tight mb-1">
-                {name ?? "—"}
-              </h1>
-              <p className="text-sm text-muted-foreground font-mono tracking-wider">
-                {subtitle ?? "—"}
-              </p>
-            </div>
-          </div> */}
-
           {/* ── Error state ── */}
           {isError && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive mb-4">

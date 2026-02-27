@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { useState, useMemo } from "react";
 import {
@@ -13,6 +11,7 @@ import {
   IconLayoutColumns,
   IconSearch,
 } from "@tabler/icons-react";
+
 import {
   flexRender,
   getCoreRowModel,
@@ -30,15 +29,14 @@ import {
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -56,6 +54,7 @@ import {
 } from "@/components/ui/table";
 import { TabsLine } from "@/components/tabs";
 import { EmptyState } from "@/components/empty-state";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 export const schema = z.object({
   id: z.number(),

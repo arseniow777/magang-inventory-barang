@@ -40,9 +40,8 @@ export function UnitCartButton({
 
   return (
     <>
-      <Separator />
       <Button
-        className="w-full"
+        className="w-full rounded-sm"
         variant={alreadyInCart ? "outline" : "default"}
         onClick={handleAddToCart}
         disabled={alreadyInCart}

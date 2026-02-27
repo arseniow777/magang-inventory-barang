@@ -60,6 +60,8 @@ export default function ItemDetail({ id }: ItemDetailProps) {
           <ItemInfoPanel
             item={item}
             isAdmin={isAdmin}
+            itemName={item?.name}
+            modelCode={item?.model_code}
             onEditClick={() => setEditOpen(true)}
           />
           <Separator />
