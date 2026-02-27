@@ -1,5 +1,6 @@
 import { ItemsCard } from "./items-card";
 import type { ItemMasters } from "../types/barang.types";
+import { EmptyState } from "@/components/empty-state";
 
 interface ItemsGridProps {
   items: ItemMasters[];
@@ -20,9 +21,12 @@ export function ItemsGrid({ items, isLoading }: ItemsGridProps) {
       {items.length > 0 ? (
         items.map((item) => <ItemsCard key={item.id} item={item} />)
       ) : (
-        <p className="col-span-full text-center text-neutral-500 dark:text-neutral-400">
-          No items found
-        </p>
+        <div className="col-span-full">
+          <EmptyState
+            title="Tidak ada barang"
+            description="Belum ada barang yang terdaftar di sistem"
+          />
+        </div>
       )}
     </div>
   );

@@ -2,7 +2,9 @@ import { useUsersData } from "../hooks/usePenggunaData";
 import { DataTable } from "../components/data-table";
 
 export default function PenggunaPage() {
+  const DEBUG_EMPTY = false;
   const { data: users = [], isLoading } = useUsersData();
+  const displayedUsers = DEBUG_EMPTY ? [] : users;
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -20,7 +22,7 @@ export default function PenggunaPage() {
           <p>Memuat data...</p>
         </div>
       ) : (
-        <DataTable data={users} />
+        <DataTable data={displayedUsers} />
       )}
     </div>
   );

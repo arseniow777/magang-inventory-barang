@@ -4,12 +4,13 @@ import { TabsLine } from "@/components/tabs";
 import { usePasswordResets } from "../hooks/usePasswordResets";
 import PasswordResetCard from "./PasswordResetCard";
 import type { PasswordResetData } from "../types/passwordReset.types";
+import { EmptyState } from "@/components/empty-state";
 
 const TABS = [
+  { value: "all", label: "Semua" },
   { value: "pending", label: "Menunggu" },
   { value: "approved", label: "Disetujui" },
   { value: "rejected", label: "Ditolak" },
-  { value: "all", label: "Semua" },
 ];
 
 export default function PasswordResets() {
@@ -47,13 +48,14 @@ export default function PasswordResets() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Tidak ada permintaan reset password
-          {activeStatus !== "all"
-            ? ` dengan status "${TABS.find((t) => t.value === activeStatus)?.label}"`
-            : ""}
-          .
-        </p>
+        <EmptyState
+          title="Tidak ada permintaan"
+          description={`Tidak ada permintaan reset password${
+            activeStatus !== "all"
+              ? ` dengan status "${TABS.find((t) => t.value === activeStatus)?.label}"`
+              : ""
+          }`}
+        />
       ) : (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((r) => (

@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RequestData } from "../types/permintaan.types";
 import ReqCard from "./req-card";
+import { EmptyState } from "@/components/empty-state";
 
 interface ReqGridProps {
   data: RequestData[];
@@ -20,7 +21,11 @@ export function ReqGrid({ data, isLoading }: ReqGridProps) {
 
   if (data.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">Belum ada permintaan.</p>
+      // <p className="text-sm text-muted-foreground">Belum ada permintaan.</p>
+      <EmptyState
+        title="Belum ada permintaan"
+        description="Tidak ada request yang dibuat oleh user"
+      />
     );
   }
 

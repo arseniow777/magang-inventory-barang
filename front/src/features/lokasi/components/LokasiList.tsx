@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { LocationData } from "../types/lokasi.types";
+import { EmptyState } from "@/components/empty-state";
 
 function LocationCard({ location }: { location: LocationData }) {
   const navigate = useNavigate();
@@ -136,10 +137,14 @@ function LocationCard({ location }: { location: LocationData }) {
 
 export default function LokasiList() {
   const { data: locations = [], isLoading, error } = useLokasiData();
+
+  const debugEmpty = false; //testing UI
+  const dataToUse = debugEmpty ? [] : locations;
+
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
-  const filtered = locations.filter((l) => {
+  const filtered = dataToUse.filter((l) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -165,14 +170,15 @@ export default function LokasiList() {
     );
   }
 
-  if (locations.length === 0) {
+  if (dataToUse.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-lg">
-        <IconBuildingCommunity className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Belum ada lokasi</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Tambahkan lokasi pertama untuk mulai mengelola penyimpanan barang
-        </p>
+        <EmptyState
+          icon={<IconBuildingCommunity />}
+          title="Belum ada lokasi"
+          description="Tambahkan lokasi pertama untuk mulai mengelola penyimpanan barang"
+        />
+
         <Button onClick={() => navigate("/dashboard/lokasi/tambah")}>
           <IconPlus className="h-4 w-4 mr-2" />
           Tambah Lokasi
