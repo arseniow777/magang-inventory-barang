@@ -7,6 +7,7 @@ import { getImageUrl } from "@/config/api";
 import { useAuthUser, Role } from "@/hooks/useAuthUser";
 import { AddToCartSection } from "../components/image-gallery/AddToCartSection";
 import { UnitDataTable } from "../components/item-detail/UnitDataTable";
+import EditItemDialog from "../components/EditItemDialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +18,11 @@ export default function ItemPage() {
 
   const { data: authUser } = useAuthUser();
   const isPic = authUser?.role === Role.pic;
+  const isAdmin = authUser?.role === Role.admin;
 
   const { data: item } = useItemDetail(numericId);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const photos = item?.photos ?? [];
   const activePhoto = selectedPhoto ?? photos[0]?.file_path ?? null;
@@ -97,9 +100,28 @@ export default function ItemPage() {
         <div className="space-y-4 w-auto h-auto flex flex-col justify-between">
           {/* Header */}
           <div className="flex flex-col space-y-4">
-            <p className="text-sm uppercase tracking-widest text-muted-foreground">
-              {item?.category ?? "—"}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                {item?.category ?? "—"}
+              </p>
+              {item && isAdmin && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground -mr-2"
+                    onClick={() => setEditOpen(true)}
+                  >
+                    Edit
+                  </Button>
+                  <EditItemDialog
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    item={item}
+                  />
+                </>
+              )}
+            </div>
             <h1 className="text-3xl leading-tight">{item?.name ?? "—"}</h1>
             <p className="text-md tracking-wide text-muted-foreground mt-0.5">
               {item?.model_code ?? "—"}
@@ -178,9 +200,7 @@ export default function ItemPage() {
       </div>
 
       {/* ── Bottom: Unit list data-table ── */}
-      <div className="bg-accent rounded-lg p-4">
-        <UnitDataTable units={units} itemId={item?.id} />
-      </div>
+      <UnitDataTable units={units} itemId={item?.id} />
     </section>
   );
 }

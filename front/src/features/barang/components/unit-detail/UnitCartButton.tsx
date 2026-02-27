@@ -1,6 +1,5 @@
 import { IconCheck, IconShoppingCartPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTransferCart } from "@/features/transfer/hooks/useTransferCart";
 import type {

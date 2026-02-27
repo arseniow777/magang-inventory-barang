@@ -127,8 +127,12 @@ export function TransferCheckoutForm({
             </SelectTrigger>
             <SelectContent>
               {locations.map((loc) => (
-                <SelectItem key={loc.id} value={String(loc.id)}>
-                  {loc.name}
+                <SelectItem
+                  key={loc.id}
+                  value={String(loc.id)}
+                  label={loc.building_name}
+                >
+                  {loc.building_name}
                 </SelectItem>
               ))}
             </SelectContent>

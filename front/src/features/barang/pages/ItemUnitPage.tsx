@@ -131,24 +131,30 @@ export default function ItemUnitPage() {
                 </div>
               )}
             </div>
-            <p className="text-md tracking-wide font-mono text-muted-foreground mt-0.5">
-              {unit?.unit_code ?? "—"}
-            </p>
           </div>
 
           <div className="h-auto">
             {/* Badges */}
             <Separator />
-            <div className="flex gap-3 my-5">
-              {unit && (
-                <>
-                  <Badge variant={conditionVariant[unit.condition]}>
-                    {conditionLabel[unit.condition]}
-                  </Badge>
-                  <Badge variant={statusVariant[unit.status]}>
-                    {statusLabel[unit.status]}
-                  </Badge>
-                </>
+            <div className="flex justify-between items-center py-3 text-sm">
+              <span className="text-muted-foreground">Kondisi</span>
+              {unit ? (
+                <Badge variant={conditionVariant[unit.condition]}>
+                  {conditionLabel[unit.condition]}
+                </Badge>
+              ) : (
+                "—"
+              )}
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center py-3 text-sm">
+              <span className="text-muted-foreground">Status</span>
+              {unit ? (
+                <Badge variant={statusVariant[unit.status]}>
+                  {statusLabel[unit.status]}
+                </Badge>
+              ) : (
+                "—"
               )}
             </div>
 

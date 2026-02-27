@@ -197,7 +197,11 @@ export function SecondField({ formData, onFieldChange }: SecondFieldProps) {
                 <SelectContent>
                   <SelectGroup>
                     {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id.toString()}>
+                      <SelectItem
+                        key={loc.id}
+                        value={loc.id.toString()}
+                        label={loc.building_name}
+                      >
                         {loc.building_name}
                       </SelectItem>
                     ))}

@@ -8,9 +8,10 @@ export interface CreateBarangRequest {
 
 export interface Location {
   id: number;
-  code: number;
-  name: string;
-  description?: string;
+  location_code: string;
+  building_name: string;
+  floor: number;
+  address: string;
 }
 
 export interface Category {

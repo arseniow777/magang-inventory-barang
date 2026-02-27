@@ -59,7 +59,11 @@ export function LastField({ formData, onFieldChange }: LastFieldProps) {
                 <SelectContent>
                   <SelectGroup>
                     {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
+                      <SelectItem
+                        key={user.id}
+                        value={user.id.toString()}
+                        label={user.name}
+                      >
                         {user.name}
                       </SelectItem>
                     ))}
