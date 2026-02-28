@@ -80,6 +80,7 @@ export interface CreateItemPayload {
   category: string;
   procurement_year: string;
   location_id: string;
+  pic_id: string;
   photos: File[];
 }
 
@@ -94,6 +95,7 @@ export const useCreateItem = () => {
       formDataObj.append("category", payload.category);
       formDataObj.append("procurement_year", payload.procurement_year);
       formDataObj.append("location_id", payload.location_id);
+      if (payload.pic_id) formDataObj.append("pic_id", payload.pic_id);
 
       // Add photos
       payload.photos.forEach((photo) => {

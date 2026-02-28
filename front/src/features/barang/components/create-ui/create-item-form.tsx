@@ -100,6 +100,7 @@ export function CreateItemForm() {
         category: formData.category,
         procurement_year: formData.procurement_year,
         location_id: formData.location_id,
+        pic_id: formData.pic_id,
         photos: formData.photos,
       },
       {

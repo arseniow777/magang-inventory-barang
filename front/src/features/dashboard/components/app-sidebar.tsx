@@ -13,7 +13,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import {
-  // IconSearch,
+  IconSearch,
   IconMailbox,
   IconLayoutGrid,
   IconBox,
@@ -22,7 +22,7 @@ import {
   IconUsersGroup,
   IconHistory,
   IconHelp,
-  // IconCirclePlus,
+  IconCirclePlus,
   IconKey,
   IconArrowsTransferDown,
 } from "@tabler/icons-react";
@@ -113,25 +113,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
           ]
         : [
-            // {
-            //   title: "Cari cepat",
-            //   url: "#",
-            //   icon: <IconSearch />,
-            // },
-            ...(isAdmin
-              ? [
-                  {
-                    title: "Audit log",
-                    url: "/dashboard/audit",
-                    icon: <IconHistory />,
-                  },
-                  // {
-                  //   title: "Tambahkan data",
-                  //   url: "#",
-                  //   icon: <IconCirclePlus />,
-                  // },
-                ]
-              : []),
             {
               title: "Bantuan",
               url: "/dashboard/bantuan",
@@ -160,6 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="items-center">
         <Calendar
+          captionLayout="dropdown"
           mode="single"
           className="group-data-[collapsible=icon]:hidden"
         />

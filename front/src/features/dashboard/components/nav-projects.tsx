@@ -28,20 +28,20 @@ export function NavProjects({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      <SidebarGroupLabel className="px-5">{title}</SidebarGroupLabel>
       <SidebarMenu>
         {sections.map((sections) => (
           <SidebarMenuItem key={sections.name}>
             <Link to={sections.url}>
               <SidebarMenuButton
-                className={`w-full transition-colors ${
+                tooltip={sections.name}
+                className={`w-full px-5 transition-colors ${
                   isActive(sections.url)
                     ? "bg-sidebar-border text-sidebar-accent-foreground border"
                     : "hover:border hover:bg-sidebar-border"
                 }`}
-                title={sections.name}
               >
-                {sections.icon}
+                <span className="mr-2">{sections.icon}</span>
                 <span>{sections.name}</span>
               </SidebarMenuButton>
             </Link>

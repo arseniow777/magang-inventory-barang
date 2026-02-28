@@ -42,6 +42,8 @@ export interface ItemMasters {
   category: string;
   procurement_year: number;
   created_at: string;
+  pic_id?: number | null;
+  pic?: { id: number; name: string; employee_id: string } | null;
   photos?: ItemPhotos[];
   _count?: {
     units: number;

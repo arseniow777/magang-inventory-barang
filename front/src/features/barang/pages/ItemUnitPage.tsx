@@ -68,7 +68,7 @@ export default function ItemUnitPage() {
 
       <div className="flex flex-col md:grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* ── Left: Photo Gallery ── */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           {/* Main photo */}
           <div className="rounded-sm overflow-hidden bg-muted aspect-square">
             {imageUrl ? (
@@ -85,7 +85,7 @@ export default function ItemUnitPage() {
           </div>
 
           {/* Thumbnails */}
-          <div className="grid grid-cols-3 gap-2 items-end">
+          <div className="grid grid-cols-3 gap-4 items-end">
             {photos.slice(0, 3).map((photo) => {
               const isActive =
                 (selectedPhoto ?? photos[0]?.file_path) === photo.file_path;
@@ -112,7 +112,7 @@ export default function ItemUnitPage() {
         </div>
 
         {/* ── Right: Info Panel ── */}
-        <div className="space-y-4 w-auto h-auto flex flex-col justify-between">
+        <div className="space-y-4 w-auto md:h-full flex flex-col justify-between">
           {/* Header */}
           <div className="flex flex-col space-y-4">
             <p className="text-sm uppercase tracking-widest text-muted-foreground">
@@ -133,7 +133,7 @@ export default function ItemUnitPage() {
             </div>
           </div>
 
-          <div className="h-auto">
+          <div className="flex-1">
             {/* Badges */}
             <Separator />
             <div className="flex justify-between items-center py-3 text-sm">

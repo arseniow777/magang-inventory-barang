@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-// import { type LucideIcon } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -22,6 +21,7 @@ import {
   IconBox,
   IconBuildingCommunity,
 } from "@tabler/icons-react";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 export function NavSecondary({
   items,
@@ -35,6 +35,11 @@ export function NavSecondary({
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
+
+  // auth
+  const { data: authUser } = useAuthUser();
+  const isGuest = localStorage.getItem("isGuest") === "true";
+  const isAdmin = authUser?.role === "admin";
 
   const addDataMenuItems = [
     {
@@ -60,38 +65,42 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton render={<a href={item.url} />}>
-                {item.icon}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              <a href={item.url}>
+                <SidebarMenuButton className="px-5" tooltip={item.title}>
+                  {item.icon}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </a>
             </SidebarMenuItem>
           ))}
-
-          {/* Add Data Dropdown */}
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<SidebarMenuButton />}>
-                <IconCirclePlus className="h-4 w-4" />
-                <span>Tambahkan data</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="min-w-56 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align="start"
-                sideOffset={4}
-              >
-                {addDataMenuItems.map((item) => (
-                  <DropdownMenuItem
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
+          {!isGuest && isAdmin && (
+            <SidebarMenuItem className="px-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<SidebarMenuButton tooltip="Tambahkan data" />}
+                >
+                  <IconCirclePlus className="h-4 w-4" />
+                  <span>Tambahkan data</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="min-w-56 rounded-lg"
+                  side={isMobile ? "bottom" : "right"}
+                  align="start"
+                  sideOffset={4}
+                >
+                  {addDataMenuItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

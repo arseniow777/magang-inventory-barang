@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import { createAuditLog } from "./audit.js";
+import { handleInventoryQuery } from "./inventoryQueryHandler.js";
 
 const bot = process.env.TELEGRAM_BOT_TOKEN
   ? new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true })
@@ -539,10 +540,32 @@ if (bot) {
     }
 
     const user = await getUserByTelegramId(telegram_id);
-    if (user) {
-      await sendMainMenu(chatId, user.name);
-    } else {
+    if (!user) {
       await sendNotConnected(chatId);
+      return;
+    }
+
+    // Show menu keyboard when user types "menu"
+    if (text.trim().toLowerCase() === "menu") {
+      await sendMainMenu(chatId, user.name);
+      return;
+    }
+
+    // All other messages are handled by AI
+    await bot.sendChatAction(chatId, "typing");
+    try {
+      const aiResponse = await handleInventoryQuery(text, user.id);
+      const reply =
+        aiResponse && aiResponse.trim()
+          ? aiResponse
+          : "Maaf, tidak ada respons dari AI. Coba lagi nanti.";
+      await bot.sendMessage(chatId, reply, { parse_mode: "Markdown" });
+    } catch (aiError) {
+      console.error("Bot AI handler error:", aiError.message);
+      await bot.sendMessage(
+        chatId,
+        "Maaf, terjadi kesalahan saat memproses pertanyaan kamu. Coba lagi nanti.",
+      );
     }
   });
 

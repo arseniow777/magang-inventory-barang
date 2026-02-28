@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // --- ENUMS ---
@@ -87,6 +88,7 @@ model Users {
   password_resets_admin   PasswordResets[]   @relation("AdminPasswordResets")
   logs_moved              ItemLogHistory[]
   audit_logs              AuditLogs[]
+  items_as_pic            ItemMasters[]      @relation("ItemPIC")
 }
 
 model ItemMasters {
@@ -97,6 +99,8 @@ model ItemMasters {
   procurement_year   Int
   created_at         DateTime          @default(now())
 
+  pic_id             Int?
+  pic                Users?            @relation("ItemPIC", fields: [pic_id], references: [id])
 
   photos             ItemPhotos[]
   units              ItemUnits[]      

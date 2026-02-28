@@ -281,14 +281,7 @@ export default function Dashboard() {
               }
             />
             <Route path="/pengguna/edit/:id" element={<EditPenggunaPage />} />
-            <Route
-              path="/bantuan"
-              element={
-                <AdminRoute>
-                  <BantuanPage />
-                </AdminRoute>
-              }
-            />
+            <Route path="/bantuan" element={<BantuanPage />} />
             <Route path="/pengguna/edit/:id" element={<EditPenggunaPage />} />
 
             <Route

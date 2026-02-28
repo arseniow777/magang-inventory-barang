@@ -53,7 +53,7 @@ export default function ItemPage() {
       </Button>
       <div className="flex flex-col md:grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* ── Left: Photo Gallery ── */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           {/* Main photo */}
           <div className="rounded-sm overflow-hidden bg-muted aspect-square">
             {imageUrl ? (
@@ -70,7 +70,7 @@ export default function ItemPage() {
           </div>
 
           {/* Thumbnails */}
-          <div className="grid grid-cols-3 gap-2 items-end">
+          <div className="grid grid-cols-3 gap-4 items-end">
             {photos.slice(0, 3).map((photo) => {
               const isActive =
                 (selectedPhoto ?? photos[0]?.file_path) === photo.file_path;
@@ -97,7 +97,7 @@ export default function ItemPage() {
         </div>
 
         {/* ── Right: Info Panel ── */}
-        <div className="space-y-4 w-auto h-auto flex flex-col justify-between">
+        <div className="space-y-4 w-auto md:h-full flex flex-col justify-between">
           {/* Header */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center justify-between">
@@ -128,7 +128,7 @@ export default function ItemPage() {
             </p>
           </div>
 
-          <div className="h-auto">
+          <div className="flex-1">
             {/* Stats */}
             <Separator />
             <div className="flex gap-6 my-5">
@@ -178,6 +178,11 @@ export default function ItemPage() {
               <div className="flex justify-between py-3 text-sm">
                 <span className="text-muted-foreground">Ditambahkan</span>
                 <span className="font-medium">{createdAt}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between py-3 text-sm">
+                <span className="text-muted-foreground">Person in Charge</span>
+                <span className="font-medium">{item?.pic?.name ?? "—"}</span>
               </div>
             </div>
 

@@ -15,10 +15,17 @@ const __dirname = path.dirname(__filename);
 
 export const createItem = async (req, res, next) => {
   try {
-    const { name, category, procurement_year, quantity, location_id } =
+    const { name, category, procurement_year, quantity, location_id, pic_id } =
       req.body;
 
-    if (!name || !category || !procurement_year || !quantity || !location_id) {
+    if (
+      !name ||
+      !category ||
+      !procurement_year ||
+      !quantity ||
+      !location_id ||
+      !pic_id
+    ) {
       return sendError(res, "Semua field wajib diisi", 400);
     }
 
@@ -41,6 +48,7 @@ export const createItem = async (req, res, next) => {
         model_code,
         category,
         procurement_year: parseInt(procurement_year),
+        ...(pic_id ? { pic_id: parseInt(pic_id) } : {}),
       },
     });
 
@@ -170,6 +178,9 @@ export const getItems = async (req, res, next) => {
       where,
       include: {
         photos: true,
+        pic: {
+          select: { id: true, name: true, employee_id: true },
+        },
         _count: {
           select: {
             units: true,
@@ -223,6 +234,9 @@ export const getItemById = async (req, res, next) => {
         units: {
           include: { location: true },
         },
+        pic: {
+          select: { id: true, name: true, employee_id: true },
+        },
       },
     });
 
@@ -251,40 +265,15 @@ export const updateItem = async (req, res, next) => {
 
     const updateData = {};
     if (name) updateData.name = name;
-    if (procurement_year)
+    if (category) updateData.category = category;
+    if (procurement_year != null)
       updateData.procurement_year = parseInt(procurement_year);
-
-    if (category || procurement_year) {
-      updateData.model_code = await generateModelCode(
-        category || existing.category,
-        procurement_year
-          ? parseInt(procurement_year)
-          : existing.procurement_year,
-      );
-    }
 
     const item = await prisma.itemMasters.update({
       where: { id: parseInt(id) },
       data: updateData,
       include: { photos: true, units: true },
     });
-
-    if (category || procurement_year) {
-      const existingUnits = await prisma.itemUnits.findMany({
-        where: { item_id: parseInt(id) },
-      });
-
-      await Promise.all(
-        existingUnits.map((unit) => {
-          const sequence = unit.unit_code.split("-")[1];
-          const newUnitCode = `${item.model_code}-${sequence}`;
-          return prisma.itemUnits.update({
-            where: { id: unit.id },
-            data: { unit_code: newUnitCode },
-          });
-        }),
-      );
-    }
 
     await createAuditLog({
       actor_id: req.user.id,
