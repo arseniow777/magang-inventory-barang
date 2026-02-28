@@ -166,6 +166,7 @@ async function getItemInfo(keyword) {
       ],
     },
     include: {
+      pic: { select: { name: true, employee_id: true } },
       units: {
         include: {
           location: { select: { building_name: true, floor: true } },
@@ -229,6 +230,7 @@ async function getItemInfo(keyword) {
       category: item.category,
       procurement_year: item.procurement_year,
       total_units: item.units.length,
+      pic_master: item.pic ? item.pic.name : null,
       units: unitList,
     };
   });

@@ -129,86 +129,122 @@ const ollamaChat = async (messages) => {
 const formatters = {
   getItemLocation(result) {
     if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items.map(
-      (u) =>
-        `• *${u.name}* (${u.unit_code})\n  📍 ${u.location}\n  Status: _${u.status}_ | Kondisi: _${u.condition}_`,
+    const locationSet = new Set(result.items.map((u) => u.location));
+    const statusCount = {};
+    result.items.forEach((u) => {
+      statusCount[u.status] = (statusCount[u.status] || 0) + 1;
+    });
+    const statusStr = Object.entries(statusCount)
+      .map(([s, c]) => `${s}: ${c}`)
+      .join(" | ");
+    return (
+      `📍 *Lokasi: ${result.items[0]?.name ?? "—"}*\n` +
+      `   ${[...locationSet].join(", ")}\n\n` +
+      `   Total: ${result.items.length} unit\n` +
+      `   • Status: ${statusStr}`
     );
-    return `*Lokasi Barang*\n\n${lines.join("\n\n")}`;
   },
 
   getItemStock(result) {
     if (!result.found) return `❌ ${result.message}`;
+    const STATUS_SHORT = {
+      available: "Avl",
+      borrowed: "Bor",
+      transferred: "Trf",
+      sold: "Sold",
+      demolished: "Dem",
+    };
     const breakdown = Object.entries(result.breakdown)
-      .map(([status, count]) => `  • ${status}: ${count}`)
-      .join("\n");
-    return `*Stok "${result.keyword}"*\n\nTotal: *${result.total} unit*\n${breakdown}`;
+      .map(([s, c]) => `${STATUS_SHORT[s] ?? s} ${c}`)
+      .join(" | ");
+    return (
+      `📦 *Stok "${result.keyword}"*\n\n` +
+      `   Total Unit : *${result.total} unit*\n` +
+      `   Status   : ${breakdown}`
+    );
   },
 
   getAvailableItems(result) {
     if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items.map(
-      (item) =>
-        `• *${item.name}* — ${item.count} unit tersedia\n  📍 ${item.locations.length ? item.locations.join(", ") : "Lokasi tidak tersedia"}`,
-    );
-    return `*Barang Tersedia* (${result.total} unit)\n\n${lines.join("\n\n")}`;
+    const lines = result.items
+      .slice(0, 8)
+      .map((item) => `• *${item.name}* — ${item.count} unit`);
+    const more =
+      result.items.length > 8
+        ? `\n_...dan ${result.items.length - 8} barang lainnya_`
+        : "";
+    return `📦 *Barang Tersedia* (${result.total} unit)\n\n${lines.join("\n")}${more}`;
   },
 
   getMostBorrowedItems(result) {
     if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items.map(
-      (item, i) => `${i + 1}. *${item.name}* — ${item.count}x dipinjam`,
-    );
-    return `*Barang Paling Sering Dipinjam*\n\n${lines.join("\n")}`;
+    const lines = result.items
+      .slice(0, 5)
+      .map((item, i) => `${i + 1}. *${item.name}* — ${item.count}x`);
+    return `🏆 *Paling Sering Dipinjam*\n\n${lines.join("\n")}`;
   },
 
   getUserActiveLoans(result) {
     if (!result.found) return `ℹ️ ${result.message}`;
-    const lines = result.loans.map((loan) => {
-      const items = loan.items
-        .map((i) => `    • ${i.name} (${i.unit_code}) — ${i.location}`)
-        .join("\n");
-      return `*${loan.request_code}* — _${loan.status}_\n${items}`;
-    });
-    return `*Pinjaman Aktif Kamu*\n\n${lines.join("\n\n")}`;
+    const lines = result.loans.map(
+      (loan) =>
+        `• *${loan.request_code}* — _${loan.status}_\n` +
+        `  ${loan.items.map((i) => i.name).join(", ")}`,
+    );
+    return `📋 *Pinjaman Aktif* (${result.loans.length})\n\n${lines.join("\n\n")}`;
   },
 
   getOverdueItems(result) {
-    if (!result.found) return `\u2139\ufe0f ${result.message}`;
-    const lines = result.overdues.map((r) => {
-      const items = r.items.map((name) => `    \u2022 ${name}`).join("\n");
-      return `\ud83d\udc64 *${r.pic_name}* (${r.request_code})\n${items}\n  \u23f0 ${r.days_overdue} hari terlambat`;
-    });
-    return `*Barang Terlambat Dikembalikan*\n\n${lines.join("\n\n")}`;
+    if (!result.found) return `ℹ️ ${result.message}`;
+    const lines = result.overdues.map(
+      (r) =>
+        `• 👤 *${r.pic_name}* — ${r.items.length} barang\n` +
+        `  ⏰ ${r.days_overdue} hari terlambat (${r.request_code})`,
+    );
+    return `⚠️ *Terlambat Dikembalikan* (${result.overdues.length})\n\n${lines.join("\n\n")}`;
   },
 
   getItemInfo(result) {
     if (!result.found) return `❌ ${result.message}`;
     const lines = result.items.map((item) => {
-      const unitLines = item.units
-        .map((u) => {
-          const statusIcon =
-            u.status === "available"
-              ? "🟢"
-              : u.status === "borrowed"
-                ? "🔴"
-                : "⚪";
-          let line =
-            `  ${statusIcon} *${u.unit_code}* — _${u.condition}_\n` +
-            `    📍 ${u.location}`;
-          if (u.pic) {
-            line +=
-              `\n    👤 *${u.pic.name}* (${u.pic.employee_id})` +
-              `\n    📋 ${u.pic.request_code} | sejak ${new Date(u.pic.borrowed_since).toLocaleDateString("id-ID")}`;
-          }
-          return line;
-        })
-        .join("\n");
+      const statusCount = {};
+      const conditionCount = {};
+      const locationSet = new Set();
+
+      item.units.forEach((u) => {
+        statusCount[u.status] = (statusCount[u.status] || 0) + 1;
+        conditionCount[u.condition] = (conditionCount[u.condition] || 0) + 1;
+        if (u.location) locationSet.add(u.location);
+      });
+
+      const STATUS_SHORT = {
+        available: "Avl",
+        borrowed: "Bor",
+        transferred: "Trf",
+        sold: "Sold",
+        demolished: "Dem",
+      };
+      const CONDITION_SHORT = {
+        good: "Good",
+        damaged: "Dmg",
+        broken: "Brk",
+      };
+
+      const statusStr = Object.entries(statusCount)
+        .map(([s, c]) => `${STATUS_SHORT[s] ?? s} ${c}`)
+        .join(" | ");
+      const conditionStr = Object.entries(conditionCount)
+        .map(([c, n]) => `${CONDITION_SHORT[c] ?? c} ${n}`)
+        .join(" | ");
+      const locationStr = locationSet.size ? [...locationSet].join(", ") : "—";
+      const picStr = item.pic_master ? ` | 👤 ${item.pic_master}` : "";
 
       return (
-        `📦 *${item.name}*  \`${item.model_code}\`\n` +
-        `  Kategori: ${item.category} | Tahun: ${item.procurement_year}\n` +
-        `  Total: *${item.total_units} unit*\n\n` +
-        unitLines
+        `📦 *${item.name}* | \`${item.model_code}\` | ${item.category} | ${item.procurement_year}\n` +
+        `   📍 ${locationStr}${picStr}\n\n` +
+        `   Total    : ${item.total_units}\n` +
+        `   Status   : ${statusStr}\n` +
+        `   Kondisi  : ${conditionStr}`
       );
     });
     return lines.join("\n\n");
