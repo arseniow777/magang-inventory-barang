@@ -134,8 +134,16 @@ const formatters = {
     result.items.forEach((u) => {
       statusCount[u.status] = (statusCount[u.status] || 0) + 1;
     });
+    const STATUS_SHORT_LOC = {
+      available: "Avl",
+      in_transit: "Transit",
+      borrowed: "Bor",
+      transferred: "Trf",
+      sold: "Sold",
+      demolished: "Dem",
+    };
     const statusStr = Object.entries(statusCount)
-      .map(([s, c]) => `${s}: ${c}`)
+      .map(([s, c]) => `${STATUS_SHORT_LOC[s] ?? s}: ${c}`)
       .join(" | ");
     return (
       `📍 *Lokasi: ${result.items[0]?.name ?? "—"}*\n` +
@@ -149,6 +157,7 @@ const formatters = {
     if (!result.found) return `❌ ${result.message}`;
     const STATUS_SHORT = {
       available: "Avl",
+      in_transit: "Transit",
       borrowed: "Bor",
       transferred: "Trf",
       sold: "Sold",
@@ -219,6 +228,7 @@ const formatters = {
 
       const STATUS_SHORT = {
         available: "Avl",
+        in_transit: "Transit",
         borrowed: "Bor",
         transferred: "Trf",
         sold: "Sold",

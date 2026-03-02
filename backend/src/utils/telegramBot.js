@@ -151,8 +151,10 @@ if (bot) {
         } else {
           const statusLabel = {
             pending: "Menunggu",
+            in_transit: "Dalam Perjalanan",
             approved: "Disetujui",
             rejected: "Ditolak",
+            cancelled: "Dibatalkan",
             completed: "Selesai",
           };
           await bot.sendMessage(
@@ -201,7 +203,7 @@ if (bot) {
       }
 
       if (data === "menu_return") {
-        const borrowRequest = await prisma.requests.findFirst({
+        const borrowRequests = await prisma.requests.findMany({
           where: {
             pic_id: user.id,
             request_type: "borrow",
@@ -215,30 +217,45 @@ if (bot) {
           orderBy: { created_at: "desc" },
         });
 
-        if (!borrowRequest) {
+        if (borrowRequests.length === 0) {
           await bot.sendMessage(
             chatId,
             "Tidak ada barang yang perlu dikembalikan.",
           );
         } else {
-          const locations = await prisma.locations.findMany();
-
-          const locationButtons = locations.map((loc) => [
+          const requestButtons = borrowRequests.map((r) => [
             {
-              text: `${loc.building_name} Lt.${loc.floor}`,
-              callback_data: `return_confirm:${borrowRequest.id}:${loc.id}`,
+              text: `${r.request_code} — ${r._count.request_items} unit`,
+              callback_data: `return_pick:${r.id}`,
             },
           ]);
 
           await bot.sendMessage(
             chatId,
-            `*Return Barang*\n\nKode: ${borrowRequest.request_code}\nJumlah Item: ${borrowRequest._count.request_items}\nTujuan: ${borrowRequest.destination_location?.building_name || "-"}\n\nPilih lokasi pengembalian:`,
+            `*Return Barang*\n\nPilih request yang ingin dikembalikan:`,
             {
               parse_mode: "Markdown",
-              reply_markup: { inline_keyboard: locationButtons },
+              reply_markup: { inline_keyboard: requestButtons },
             },
           );
         }
+      }
+
+      if (data.startsWith("return_pick:")) {
+        const [, requestId] = data.split(":");
+        const locations = await prisma.locations.findMany();
+
+        const locationButtons = locations.map((loc) => [
+          {
+            text: `${loc.building_name} Lt.${loc.floor}`,
+            callback_data: `return_confirm:${requestId}:${loc.id}`,
+          },
+        ]);
+
+        await bot.sendMessage(chatId, `Pilih lokasi pengembalian:`, {
+          parse_mode: "Markdown",
+          reply_markup: { inline_keyboard: locationButtons },
+        });
       }
 
       if (data.startsWith("return_confirm:")) {
@@ -327,7 +344,7 @@ if (bot) {
                 prisma.notifications.create({
                   data: {
                     user_id: admin.id,
-                    message: `${user.name} mengembalikan barang dari request ${request.request_code} via Telegram`,
+                    message: `${user.name} mengembalikan barang dari request ${request.request_code} ke ${location.building_name} Lt.${location.floor} via Telegram`,
                     type: "request",
                   },
                 }),
@@ -336,7 +353,8 @@ if (bot) {
 
             await bot.sendMessage(
               chatId,
-              `Barang dari request ${request.request_code} berhasil dikembalikan ke ${location.building_name} Lt.${location.floor}.`,
+              `✅ Barang dari request *${request.request_code}* berhasil dikembalikan ke *${location.building_name} Lt.${location.floor}*.`,
+              { parse_mode: "Markdown" },
             );
           }
         }

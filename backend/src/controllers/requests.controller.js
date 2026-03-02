@@ -418,7 +418,65 @@ export const approveRequest = async (req, res, next) => {
       return sendSuccess(res, "Request berhasil diapprove", updatedRequest);
     }
 
-    // borrow & transfer — mark in_transit, items set to in_transit
+    // borrow — approve directly, item marked borrowed, awaiting return confirmation
+    if (request.request_type === "borrow") {
+      for (const requestItem of request.request_items) {
+        await prisma.itemUnits.update({
+          where: { id: requestItem.unit_id },
+          data: { status: "borrowed" },
+        });
+      }
+
+      const updatedRequest = await prisma.requests.update({
+        where: { id: parseInt(id) },
+        data: {
+          status: "approved",
+          approved_at: new Date(),
+          admin_id: req.user.id,
+        },
+        include: {
+          pic: true,
+          admin: true,
+          destination_location: true,
+          request_items: {
+            include: { unit: { include: { item: true, location: true } } },
+          },
+        },
+      });
+
+      await createAuditLog({
+        actor_id: req.user.id,
+        actor_role: req.user.role,
+        action: "APPROVE",
+        entity_type: "Requests",
+        entity_id: request.id,
+        description: `Request ${request.request_code} (peminjaman) diapprove oleh ${req.user.username}`,
+        user_agent: req.headers["user-agent"],
+      });
+
+      await prisma.notifications.create({
+        data: {
+          user_id: updatedRequest.pic_id,
+          message: `Request peminjaman ${updatedRequest.request_code} disetujui. Silakan kembalikan barang setelah selesai.`,
+          type: "request",
+        },
+      });
+
+      if (updatedRequest.pic.telegram_id) {
+        await sendTelegramMessage(
+          updatedRequest.pic.telegram_id,
+          `✅ Request peminjaman *${updatedRequest.request_code}* disetujui!\n\n📦 Silakan kembalikan barang setelah selesai digunakan.`,
+        );
+      }
+
+      return sendSuccess(
+        res,
+        "Request peminjaman berhasil diapprove",
+        updatedRequest,
+      );
+    }
+
+    // transfer — mark in_transit, items set to in_transit
     for (const requestItem of request.request_items) {
       await prisma.itemUnits.update({
         where: { id: requestItem.unit_id },
@@ -449,14 +507,14 @@ export const approveRequest = async (req, res, next) => {
       action: "APPROVE",
       entity_type: "Requests",
       entity_id: request.id,
-      description: `Request ${request.request_code} diapprove, barang dalam perjalanan`,
+      description: `Request ${request.request_code} diapprove, barang (transfer) dalam perjalanan`,
       user_agent: req.headers["user-agent"],
     });
 
     await prisma.notifications.create({
       data: {
         user_id: updatedRequest.pic_id,
-        message: `Request ${updatedRequest.request_code} disetujui. Barang sedang dalam perjalanan ke lokasi tujuan.`,
+        message: `Request transfer ${updatedRequest.request_code} disetujui. Barang sedang dalam perjalanan ke lokasi tujuan.`,
         type: "request",
       },
     });
@@ -801,19 +859,21 @@ export const returnRequest = async (req, res, next) => {
       user_agent: req.headers["user-agent"],
     });
 
-    const admins = await prisma.users.findMany({ where: { role: "admin" } });
+    // Notify the PIC that their borrowed items have been confirmed as returned
+    await prisma.notifications.create({
+      data: {
+        user_id: updatedRequest.pic_id,
+        message: `Pengembalian barang dari request ${request.request_code} telah dikonfirmasi oleh admin. Barang kembali tersedia.`,
+        type: "request",
+      },
+    });
 
-    await Promise.all(
-      admins.map((admin) =>
-        prisma.notifications.create({
-          data: {
-            user_id: admin.id,
-            message: `${req.user.username} mengembalikan barang dari request ${request.request_code}`,
-            type: "request",
-          },
-        }),
-      ),
-    );
+    if (updatedRequest.pic.telegram_id) {
+      await sendTelegramMessage(
+        updatedRequest.pic.telegram_id,
+        `✅ Pengembalian barang dari request *${request.request_code}* telah dikonfirmasi oleh admin.\n\nBarang kembali tersedia di lokasi asal.`,
+      );
+    }
 
     return sendSuccess(res, "Barang berhasil direturn", updatedRequest);
   } catch (err) {
