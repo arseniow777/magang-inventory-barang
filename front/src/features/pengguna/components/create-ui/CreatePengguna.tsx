@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateUser } from "../../hooks/usePenggunaData";
 import { createUserSchema } from "../../schemas/pengguna.schema";
-import { IconUser } from "@tabler/icons-react";
+import { IconUser, IconEyeOff, IconEye } from "@tabler/icons-react";
 
 const PRESET_PASSWORDS = ["Telkom@123", "Invetel@2024", "User@12345"];
 
@@ -75,6 +75,8 @@ export function CreatePengguna() {
         ),
     });
   };
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="flex flex-col gap-8">
@@ -166,14 +168,27 @@ export function CreatePengguna() {
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
-                  className="flex-1"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Min. 8 karakter"
-                />
+                <div className="relative flex-1">
+                  <Input
+                    className="w-full pr-10"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Min. 8 karakter"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {showPassword ? (
+                      <IconEyeOff className="size-4" />
+                    ) : (
+                      <IconEye className="size-4" />
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           </div>

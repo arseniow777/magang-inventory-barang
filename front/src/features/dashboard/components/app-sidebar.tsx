@@ -151,9 +151,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <>
             <Separator className="hidden group-data-[collapsible=icon]:block" />
             <NavProjects title="Administratif" sections={data.administratif} />
+            <NavSecondary items={data.secondary} className="mt-auto" />
           </>
         )}
-        <NavSecondary items={data.secondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         {isGuest ? (

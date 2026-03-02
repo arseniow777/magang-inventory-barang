@@ -100,3 +100,71 @@ export const logout = async (req, res, next) => {
     next(err);
   }
 };
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { username, new_password } = req.body;
+
+    if (!username || !new_password) {
+      return sendError(res, "Username dan password baru wajib diisi", 400);
+    }
+
+    const user = await prisma.users.findUnique({ where: { username } });
+
+    if (!user) {
+      return sendError(res, "Username tidak ditemukan", 404);
+    }
+
+    if (!user.is_active) {
+      return sendError(res, "Akun tidak aktif", 403);
+    }
+
+    const existingPending = await prisma.passwordResets.findFirst({
+      where: { user_id: user.id, status: "pending" },
+    });
+
+    if (existingPending) {
+      return sendError(
+        res,
+        "Anda sudah memiliki request reset password yang masih pending",
+        400,
+      );
+    }
+
+    const new_password_hash = await bcrypt.hash(new_password, 10);
+
+    const reset = await prisma.passwordResets.create({
+      data: { user_id: user.id, new_password_hash, status: "pending" },
+    });
+
+    const admins = await prisma.users.findMany({ where: { role: "admin" } });
+
+    await Promise.all(
+      admins.map((admin) =>
+        prisma.notifications.create({
+          data: {
+            user_id: admin.id,
+            message: `${user.name} (${user.username}) mengajukan reset password`,
+            type: "password",
+          },
+        }),
+      ),
+    );
+
+    await createAuditLog({
+      actor_id: user.id,
+      actor_role: user.role,
+      action: "RESET_PASSWORD_REQUEST",
+      entity_type: "PasswordResets",
+      entity_id: reset.id,
+      description: `${user.username} mengajukan reset password via website`,
+    });
+
+    return sendSuccess(
+      res,
+      "Request reset password berhasil diajukan. Tunggu approval dari admin.",
+    );
+  } catch (err) {
+    next(err);
+  }
+};

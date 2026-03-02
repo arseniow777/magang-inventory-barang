@@ -295,6 +295,11 @@ export function TelegramConfirm({
     logout();
   };
 
+  // const handleGuestLogin = () => {
+  //   localStorage.setItem("isGuest", "true");
+  //   navigate("/dashboard/barang");
+  // };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-75">
@@ -390,7 +395,7 @@ export function TelegramConfirm({
                     </Button>
                   </Field>
 
-                  <Field>
+                  {/* <Field>
                     <Button
                       type="button"
                       variant="ghost"
@@ -407,7 +412,7 @@ export function TelegramConfirm({
                         "Sudah Terhubung?"
                       )}
                     </Button>
-                  </Field>
+                  </Field> */}
                 </>
               ) : (
                 <>
@@ -449,26 +454,26 @@ export function TelegramConfirm({
                       onClick={handleBack}
                       className="w-full"
                     >
-                      Kembali masuk
+                      Kembali
                     </Button>
                   </Field>
 
-                  <Field>
+                  {/* <Field>
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={handleContinue}
+                      onClick={handleGuestLogin}
                       className="w-full"
                     >
-                      Lewati untuk sekarang
+                      Masuk sebagai tamu
                     </Button>
-                  </Field>
+                  </Field> */}
                 </>
               )}
 
               <FieldDescription className="text-center">
-                Tidak dapat mengakses akun? Hubungi Admin atau IT Support
-                perusahaan.
+                Untuk melakukan login, akun Telegram Anda harus terhubung dengan
+                sistem.
               </FieldDescription>
             </FieldGroup>
           </div>

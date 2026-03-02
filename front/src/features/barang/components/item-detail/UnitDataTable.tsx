@@ -362,7 +362,7 @@ export function UnitDataTable({ units, itemId }: UnitDataTableProps) {
       )}
 
       {/* Pagination */}
-      {table.getPageCount() > 1 && (
+      {table.getPageCount() > 0 && (
         <div className="flex items-center justify-between px-1">
           <div className="text-muted-foreground text-sm hidden lg:block">
             Total: {filteredData.length} unit

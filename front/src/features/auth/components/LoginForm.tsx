@@ -86,7 +86,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Kata sandi</FieldLabel>
                   <a
-                    href="#"
+                    onClick={() => navigate("/forgot-password")}
                     className="ml-auto text-sm underline-offset-2 hover:underline"
                   >
                     Lupa kata sandi?

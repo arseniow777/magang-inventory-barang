@@ -85,7 +85,7 @@ const faqData = [
     category: "barang",
     question: "Apa saja kategori kondisi barang yang tersedia di sistem?",
     answer:
-      "Kondisi barang dibagi menjadi lima kategori utama: Baru untuk barang yang baru dibeli, Baik untuk unit yang tidak memiliki kerusakan, Terpakai untuk unit yang sedang digunakan, Rusak untuk unit dengan kendala minor namun masih berfungsi, dan Tidak Berfungsi untuk unit yang sudah tidak dapat digunakan lagi.",
+      "Kondisi barang dibagi menjadi tiga kategori utama: Baik untuk unit yang tidak memiliki kerusakan, Rusak untuk unit dengan kendala minor namun masih berfungsi, dan Tidak Berfungsi untuk unit yang sudah tidak dapat digunakan lagi.",
   },
   {
     category: "barang",
