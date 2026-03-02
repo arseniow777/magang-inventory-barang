@@ -53,6 +53,8 @@ const conditions = [
 
 export function SecondField({ formData, onFieldChange }: SecondFieldProps) {
   const { data: locations = [], isLoading: loadingLocations } = useLocations();
+  // console.log("Locations:", locations);
+  console.log(formData);
 
   if (!formData) {
     return null;
@@ -187,22 +189,31 @@ export function SecondField({ formData, onFieldChange }: SecondFieldProps) {
                   value && onFieldChange("location_id", value)
                 }
               >
-                <SelectTrigger id="item-location">
+                {/* <SelectTrigger id="item-location">
                   <SelectValue
                     placeholder={
                       loadingLocations ? "Memuat lokasi..." : "Pilih lokasi"
                     }
                   />
+                </SelectTrigger> */}
+                <SelectTrigger id="item-location">
+                  <SelectValue
+                    placeholder={
+                      loadingLocations ? "Memuat lokasi..." : "Pilih lokasi"
+                    }
+                  >
+                    {formData.location_id
+                      ? locations.find(
+                          (loc) => loc.id.toString() === formData.location_id,
+                        )?.building_name
+                      : null}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     {locations.map((loc) => (
-                      <SelectItem
-                        key={loc.id}
-                        value={loc.id.toString()}
-                        label={loc.building_name}
-                      >
-                        {loc.building_name}
+                      <SelectItem key={loc.id} value={loc.id.toString()}>
+                        {loc.building_name ?? JSON.stringify(loc)}
                       </SelectItem>
                     ))}
                   </SelectGroup>

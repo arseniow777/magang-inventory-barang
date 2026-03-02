@@ -54,7 +54,13 @@ export function LastField({ formData, onFieldChange }: LastFieldProps) {
                     placeholder={
                       loadingUsers ? "Memuat pengguna..." : "Pilih PIC"
                     }
-                  />
+                  >
+                    {formData.pic_id
+                      ? users.find(
+                          (user) => user.id.toString() === formData.pic_id,
+                        )?.name
+                      : null}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

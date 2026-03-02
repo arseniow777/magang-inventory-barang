@@ -123,7 +123,12 @@ export function TransferCheckoutForm({
                 placeholder={
                   locationsLoading ? "Memuat lokasi..." : "Pilih lokasi tujuan"
                 }
-              />
+              >
+                {locationId
+                  ? locations.find((loc) => String(loc.id) === locationId)
+                      ?.building_name
+                  : null}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {locations.map((loc) => (
