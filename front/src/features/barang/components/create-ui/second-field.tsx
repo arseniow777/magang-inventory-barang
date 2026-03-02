@@ -160,7 +160,13 @@ export function SecondField({ formData, onFieldChange }: SecondFieldProps) {
                   }
                 >
                   <SelectTrigger id="item-condition">
-                    <SelectValue placeholder="Pilih kondisi" />
+                    <SelectValue placeholder="Pilih kondisi">
+                      {formData.condition
+                        ? conditions.find(
+                            (cond) => cond.value === formData.condition,
+                          )?.label
+                        : null}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
