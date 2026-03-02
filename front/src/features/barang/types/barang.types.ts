@@ -117,3 +117,36 @@ export interface CreateItemPhotosDTO {
   file_path: string;
   item_id: number;
 }
+
+// location history (ItemLogHistory)
+export interface LocationEntry {
+  id: number;
+  location_code: string;
+  building_name: string;
+  floor: number;
+  address: string;
+}
+
+export interface ItemLogHistoryEntry {
+  id: number;
+  moved_at: string;
+  unit_id: number;
+  from_location_id: number;
+  from_location: LocationEntry;
+  to_location_id: number;
+  to_location: LocationEntry;
+  request_id: number | null;
+  request: {
+    id: number;
+    request_code: string;
+    request_type: string;
+    status: string;
+  } | null;
+  moved_by_id: number;
+  moved_by: {
+    id: number;
+    name: string;
+    username: string;
+    role: string;
+  };
+}

@@ -269,6 +269,35 @@ export const updateItem = async (req, res, next) => {
     if (procurement_year != null)
       updateData.procurement_year = parseInt(procurement_year);
 
+    const categoryChanged = category && category !== existing.category;
+    const yearChanged =
+      procurement_year != null &&
+      parseInt(procurement_year) !== existing.procurement_year;
+
+    if (categoryChanged || yearChanged) {
+      const newCategory = category || existing.category;
+      const newYear =
+        procurement_year != null
+          ? parseInt(procurement_year)
+          : existing.procurement_year;
+      const newModelCode = await generateModelCode(newCategory, newYear);
+      updateData.model_code = newModelCode;
+
+      // Update all unit codes to use the new model_code prefix
+      const units = await prisma.itemUnits.findMany({
+        where: { item_id: parseInt(id) },
+        orderBy: { unit_code: "asc" },
+      });
+
+      for (const unit of units) {
+        const suffix = unit.unit_code.split("-").slice(1).join("-");
+        await prisma.itemUnits.update({
+          where: { id: unit.id },
+          data: { unit_code: `${newModelCode}-${suffix}` },
+        });
+      }
+    }
+
     const item = await prisma.itemMasters.update({
       where: { id: parseInt(id) },
       data: updateData,

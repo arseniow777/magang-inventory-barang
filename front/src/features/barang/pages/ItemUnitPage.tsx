@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useItemDetail } from "../hooks/useItemDetail";
-import { useUnitAuditLogs } from "../hooks/useUnitAuditLogs";
+import { useUnitLocationHistory } from "../hooks/useUnitLocationHistory";
 import { getImageUrl } from "@/config/api";
 import { useAuthUser, Role } from "@/hooks/useAuthUser";
 import { UnitCartButton } from "../components/unit-detail/UnitCartButton";
@@ -23,7 +23,6 @@ import {
   conditionVariant,
   statusLabel,
   statusVariant,
-  actionVariant,
 } from "../components/item-badge-helpers";
 import { cn } from "@/lib/utils";
 
@@ -37,8 +36,8 @@ export default function ItemUnitPage() {
   const isPic = authUser?.role === Role.pic;
 
   const { data: item } = useItemDetail(numericItemId);
-  const { data: auditLogs = [], isError: logsError } =
-    useUnitAuditLogs(numericUnitId);
+  const { data: locationHistory = [], isError: logsError } =
+    useUnitLocationHistory(numericUnitId);
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
@@ -216,7 +215,7 @@ export default function ItemUnitPage() {
             <p className="text-sm font-semibold">
               Histori Lokasi{" "}
               <span className="text-muted-foreground font-normal">
-                ({auditLogs.length})
+                ({locationHistory.length})
               </span>
             </p>
           </div>
@@ -225,7 +224,7 @@ export default function ItemUnitPage() {
             <p className="text-sm text-muted-foreground py-6 text-center">
               Histori tidak tersedia (akses terbatas).
             </p>
-          ) : auditLogs.length === 0 ? (
+          ) : locationHistory.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               Belum ada histori tercatat.
             </p>
@@ -234,39 +233,52 @@ export default function ItemUnitPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">#</TableHead>
-                  <TableHead>Aksi</TableHead>
-                  <TableHead>Deskripsi</TableHead>
+                  <TableHead>Dari</TableHead>
+                  <TableHead>Ke</TableHead>
+                  <TableHead>Tipe</TableHead>
                   <TableHead>Oleh</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead>Waktu</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditLogs.map((log, index) => (
+                {locationHistory.map((log, index) => (
                   <TableRow key={log.id}>
                     <TableCell className="text-muted-foreground">
                       {index + 1}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={actionVariant[log.action] ?? "outline"}>
-                        {log.action}
-                      </Badge>
+                      <span className="font-medium">
+                        {log.from_location.building_name}
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        Lt. {log.from_location.floor}
+                      </span>
                     </TableCell>
-                    <TableCell className="max-w-sm">
-                      {log.description ??
-                        `${log.action} – ${log.entity_type} #${log.entity_id}`}
+                    <TableCell>
+                      <span className="font-medium">
+                        {log.to_location.building_name}
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        Lt. {log.to_location.floor}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {log.request ? (
+                        <Badge variant="outline" className="capitalize">
+                          {log.request.request_type}
+                        </Badge>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <IconUser className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        {log.actor?.name ?? "—"}
+                        {log.moved_by.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground capitalize">
-                      {log.actor?.role ?? "—"}
-                    </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(log.created_at).toLocaleDateString("id-ID", {
+                      {new Date(log.moved_at).toLocaleDateString("id-ID", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
