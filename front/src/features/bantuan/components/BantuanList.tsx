@@ -22,6 +22,7 @@ import { IconMessage2 } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { useContactAdmin } from "../hooks/useContactAdmin";
+import { ca } from "date-fns/locale";
 
 const faqData = [
   {
@@ -34,38 +35,32 @@ const faqData = [
     category: "umum",
     question: "Siapa saja yang memiliki akses untuk menggunakan sistem ini?",
     answer:
-      "Sistem ini dapat diakses oleh dua peran utama dengan wewenang yang berbeda. PIC (Petugas) bertugas untuk membuat permintaan dan melaporkan perubahan status barang, sementara Admin memiliki kendali penuh untuk mengelola data master, menyetujui permintaan, serta mengatur akun pengguna.",
+      "Sistem ini dapat diakses oleh dua peran utama dengan wewenang yang berbeda. PIC (Petugas) bertugas untuk membuat permintaan dan melaporkan perubahan status barang, sementara Admin memiliki kendali penuh untuk mengelola data master, menyetujui permintaan, serta mengatur akun pengguna. Sementara user biasa hanya dapat melihat data barang dan lokasi tanpa akses untuk melakukan perubahan.",
   },
   {
     category: "umum",
     question: "Apa saja fitur unggulan yang tersedia di dalam sistem?",
     answer:
-      "Kami menyediakan fitur komprehensif yang mencakup manajemen data master barang dan unit, pelacakan lokasi penyimpanan, sistem pengajuan permintaan status barang, serta fitur keamanan seperti riwayat audit (log aktivitas) dan pelacakan barang berbasis QR Code.",
+      "Kami menyediakan fitur komprehensif yang mencakup manajemen data master barang dan unit, pelacakan lokasi penyimpanan, sistem pengajuan permintaan status barang, serta fitur keamanan seperti riwayat audit (log aktivitas) dan pelacakan barang berbasis QR Code. Selain itu sistem ini juga terintegrasi dengan telegram untuk memberikan notifikasi real-time kepada pengguna terkait status permintaan dan perubahan data barang.",
   },
   {
     category: "umum",
     question:
       "Bagaimana cara mendapatkan bantuan jika saya mengalami kendala teknis?",
     answer:
-      "Jika Anda menemukan kendala saat menggunakan sistem, silakan hubungi Admin Sistem atau Tim IT kami melalui kontak yang tertera pada halaman Informasi Kontak di dalam menu Bantuan.",
+      "Jika Anda menemukan kendala saat menggunakan sistem, silakan hubungi Admin Sistem kami melalui tombol yang tertera pada halaman Bantuan. user juga dapat mengirimkan pesan langsung kepada admin melalui fitur telegram.",
   },
   {
     category: "akses",
     question: "Bagaimana langkah-langkah untuk masuk (login) ke dalam sistem?",
     answer:
-      "Silakan buka halaman login, masukkan username dan kata sandi yang telah terdaftar, lalu klik tombol Login. Jika data yang dimasukkan sesuai, Anda akan langsung diarahkan ke halaman dashboard utama.",
+      "Silakan buka halaman login, masukkan username dan kata sandi yang telah terdaftar, lalu klik tombol Login. Jika data yang dimasukkan sesuai, Anda dapat melakukan scan barcode untuk menghubungkan akun anda dengan telegram, setelah itu anda akan langsung diarahkan ke halaman dashboard utama.",
   },
   {
     category: "akses",
     question: "Apa yang harus saya lakukan jika lupa kata sandi?",
     answer:
-      "Demi keamanan, silakan hubungi Admin Sistem untuk mengajukan permohonan reset password. Setelah identitas Anda diverifikasi, Admin akan mengatur ulang kata sandi Anda agar Anda dapat kembali mengakses sistem.",
-  },
-  {
-    category: "akses",
-    question: "Apakah saya diperbolehkan mengubah kata sandi secara mandiri?",
-    answer:
-      "Saat ini, setiap perubahan kata sandi harus melalui proses persetujuan Admin. Anda dapat mengajukan permintaan reset melalui sistem dan menunggu konfirmasi dari pihak Admin sebelum kata sandi baru dapat digunakan.",
+      "Anda dapat menekan tombol 'Lupa Kata Sandi' pada halaman login, kemudian anda akan diarahkan menuju akun telegram untuk melakukan reset password melalui bot telegram, pastikan untuk mengikuti instruksi yang diberikan oleh bot untuk menyelesaikan proses reset password.",
   },
   {
     category: "akses",
@@ -78,7 +73,7 @@ const faqData = [
     question:
       "Bagaimana prosedur untuk menambahkan barang baru ke dalam sistem?",
     answer:
-      "Hanya pengguna dengan peran Admin yang dapat menambahkan barang melalui menu Barang, kemudian memilih Tambah Barang. Pastikan Anda mengisi detail informasi seperti nama, kode model, kategori, serta mengunggah foto barang jika diperlukan sebelum menyimpan data.",
+      "Hanya pengguna dengan peran Admin yang dapat menambahkan barang melalui menu Barang, kemudian memilih Tambah Barang. Pastikan Anda mengisi detail informasi seperti nama, lokasi, kategori, serta mengunggah foto barang jika diperlukan sebelum menyimpan data. Pastikan juga untuk menambahkan daftar lokasi terlebih dahulu sebelum menambahkan barang",
   },
   {
     category: "barang",
@@ -90,7 +85,7 @@ const faqData = [
     category: "barang",
     question: "Apa saja kategori kondisi barang yang tersedia di sistem?",
     answer:
-      "Kondisi barang dibagi menjadi tiga kategori utama: Baik untuk unit yang siap pakai, Rusak untuk unit dengan kendala minor namun masih berfungsi, dan Rusak Berat untuk unit yang sudah tidak dapat digunakan lagi.",
+      "Kondisi barang dibagi menjadi lima kategori utama: Baru untuk barang yang baru dibeli, Baik untuk unit yang tidak memiliki kerusakan, Terpakai untuk unit yang sedang digunakan, Rusak untuk unit dengan kendala minor namun masih berfungsi, dan Tidak Berfungsi untuk unit yang sudah tidak dapat digunakan lagi.",
   },
   {
     category: "barang",
@@ -112,16 +107,10 @@ const faqData = [
   },
   {
     category: "permintaan",
-    question: "Berapa lama waktu yang dibutuhkan hingga permintaan disetujui?",
-    answer:
-      "Proses verifikasi oleh Admin biasanya memakan waktu 1 hingga 2 hari kerja. Anda dapat memantau perkembangan status permintaan Anda secara berkala melalui menu Permintaan Saya atau melalui notifikasi sistem.",
-  },
-  {
-    category: "permintaan",
     question:
       "Bagaimana prosedur pengembalian barang yang telah selesai dipinjam?",
     answer:
-      "Untuk mengembalikan barang, silakan akses menu Permintaan Saya, cari data peminjaman yang aktif, lalu klik tombol Kembalikan. Setelah Anda mengonfirmasi lokasi pengembalian, status barang akan otomatis kembali menjadi Tersedia.",
+      "Untuk mengembalikan barang, silakan akses menu permintaan, cari data peminjaman yang aktif, lalu klik tombol Kembalikan. Setelah Anda mengonfirmasi lokasi pengembalian, status barang akan otomatis kembali menjadi Tersedia.",
   },
   {
     category: "lokasi",
@@ -141,6 +130,37 @@ const faqData = [
     answer:
       "Setiap unit barang telah dilengkapi dengan QR Code unik. Anda cukup memindai kode tersebut menggunakan aplikasi scanner di smartphone untuk mendapatkan informasi detail mengenai unit barang beserta lokasi penyimpanannya saat ini.",
   },
+  {
+    category: "telegram",
+    question: "Bagaimana cara menghubungkan akun dengan Telegram?",
+    answer:
+      "Setelah berhasil login, Anda akan diarahkan untuk melakukan scan QR Code menggunakan aplikasi Telegram. Pastikan Anda sudah memiliki aplikasi Telegram di smartphone dan ikuti instruksi yang diberikan untuk menyelesaikan proses penghubungan akun.",
+  },
+  {
+    category: "telegram",
+    question: "Apa saja notifikasi yang akan saya terima melalui Telegram?",
+    answer:
+      "Anda akan menerima notifikasi real-time terkait status permintaan yang Anda ajukan, perubahan data barang yang relevan dengan aktivitas Anda, serta pengumuman penting dari admin untuk memastikan Anda selalu mendapatkan informasi terbaru.",
+  },
+  {
+    category: "telegram",
+    question:
+      "Apakah saya bisa mengirim pesan langsung ke admin melalui Telegram?",
+    answer:
+      "Ya, Anda dapat mengirim pesan langsung kepada admin melalui fitur Telegram yang tersedia di dalam aplikasi. Pesan Anda akan diteruskan ke admin dan mereka akan merespons secepat mungkin untuk membantu menyelesaikan masalah atau menjawab pertanyaan Anda.",
+  },
+  {
+    category: "telegram",
+    question: "Bagaimana jika saya tidak menerima notifikasi di Telegram?",
+    answer:
+      "Pastikan Anda sudah menghubungkan akun dengan Telegram dan memeriksa pengaturan notifikasi di aplikasi Telegram untuk memastikan bahwa notifikasi dari sistem kami tidak diblokir atau masuk ke folder spam.",
+  },
+  {
+    category: "telegram",
+    question: "Apa saja menu yang dapat diaskses melalui Telegram?",
+    answer:
+      "Melalui Telegram, Anda dapat mengakses menu utama seperti melihat profil pengguna, request terakhir, berita acara terakhir, return barang, ganti password, hubungi admin, disconnect akun, akses website, serta user dapat melakukan checking barang dengan mengetikan nama barang pada telegram bot, setelah itu bot akan memberikan informasi terkait barang tersebut seperti jumlah unit, kondisi, dan lokasi penyimpanan.",
+  },
 ];
 
 const tabs = [
@@ -150,6 +170,7 @@ const tabs = [
   { value: "barang", label: "Manajemen Barang" },
   { value: "permintaan", label: "Permintaan" },
   { value: "lokasi", label: "Lokasi & Inventaris" },
+  { value: "telegram", label: "Telegram & Notifikasi" },
 ];
 
 export default function BantuanList() {

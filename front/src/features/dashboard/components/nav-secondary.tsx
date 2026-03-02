@@ -22,6 +22,7 @@ import {
   IconBuildingCommunity,
 } from "@tabler/icons-react";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { IconSelector } from "@tabler/icons-react";
 
 export function NavSecondary({
   items,
@@ -74,13 +75,17 @@ export function NavSecondary({
             </SidebarMenuItem>
           ))}
           {!isGuest && isAdmin && (
-            <SidebarMenuItem className="px-2">
+            <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={<SidebarMenuButton tooltip="Tambahkan data" />}
+                  className="flex justify-between "
                 >
-                  <IconCirclePlus className="h-4 w-4" />
-                  <span>Tambahkan data</span>
+                  <div className="flex items-center gap-2 pl-2">
+                    <IconCirclePlus className="h-4 w-4" />
+                    <span>Tambahkan data</span>
+                  </div>
+                  <IconSelector className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="min-w-56 rounded-lg"
