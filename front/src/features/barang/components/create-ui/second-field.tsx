@@ -33,20 +33,17 @@ interface SecondFieldProps {
 
 const categories = ["Perabotan", "Elektronik", "Operasional"];
 
+const currentYear = new Date().getFullYear();
 const years = [
   { label: "YYYY", value: "" },
-  { label: "2024", value: "2024" },
-  { label: "2025", value: "2025" },
-  { label: "2026", value: "2026" },
-  { label: "2027", value: "2027" },
-  { label: "2028", value: "2028" },
-  { label: "2029", value: "2029" },
+  ...Array.from({ length: 11 }, (_, i) => {
+    const year = (currentYear - 5 + i).toString();
+    return { label: year, value: year };
+  }),
 ];
 
 const conditions = [
-  { label: "Baru", value: "new" },
   { label: "Baik", value: "good" },
-  { label: "Terpakai", value: "used" },
   { label: "Rusak", value: "damaged" },
   { label: "Tidak berfungsi", value: "broken" },
 ];

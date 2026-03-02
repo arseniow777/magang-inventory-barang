@@ -22,9 +22,11 @@ enum NotificationType {
 
 enum RequestStatus {
   pending
+  in_transit
   approved
   rejected
   completed
+  cancelled
 }
 
 enum ReportType {
@@ -42,6 +44,7 @@ enum ItemCondition {
 
 enum ItemStatus {
   available
+  in_transit
   borrowed
   transferred
   sold

@@ -37,4 +37,12 @@ export const permintaanAPI = {
   // Cancel request
   cancelRequest: (id: number) =>
     apiClient.put<RequestData>(`/requests/${id}/cancel`, {}),
+
+  // Confirm arrival (admin) — transitions in_transit → approved/completed
+  confirmArrival: (id: number) =>
+    apiClient.put<RequestData>(`/requests/${id}/confirm-arrival`, {}),
+
+  // Return borrowed items (admin) — marks borrow as completed, items back to available
+  returnBorrow: (id: number) =>
+    apiClient.put<RequestData>(`/requests/${id}/return`, {}),
 };

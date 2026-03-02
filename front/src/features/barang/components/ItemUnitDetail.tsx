@@ -70,14 +70,16 @@ export default function ItemUnitDetail({
           <UnitInfoPanel item={item} unit={unit} qrValue={qrValue} />
           <Separator />
           <AuditLogSection auditLogs={auditLogs} logsError={logsError} />
-          {!isAdmin && unit?.status === "available" && (
-            <UnitCartButton
-              unit={unit}
-              unitId={unitId}
-              item={item}
-              firstPhotoPath={photos[0]?.file_path ?? null}
-            />
-          )}
+          {!isAdmin &&
+            (unit?.status === "available" ||
+              unit?.status === "transferred") && (
+              <UnitCartButton
+                unit={unit}
+                unitId={unitId}
+                item={item}
+                firstPhotoPath={photos[0]?.file_path ?? null}
+              />
+            )}
         </>
       }
     />

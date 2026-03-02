@@ -52,20 +52,19 @@ export const createRequest = async (req, res, next) => {
           );
         }
 
-        // TAMBAH VALIDASI INI:
-        const pendingRequest = await prisma.requestItems.findFirst({
+        const activeRequest = await prisma.requestItems.findFirst({
           where: {
             unit_id: parseInt(item.unit_id),
             request: {
-              status: "pending",
+              status: { in: ["pending", "in_transit"] },
             },
           },
         });
 
-        if (pendingRequest) {
+        if (activeRequest) {
           return sendError(
             res,
-            `Unit ${unit.unit_code} sedang menunggu approval`,
+            `Unit ${unit.unit_code} sedang dalam proses request aktif`,
             400,
           );
         }
@@ -74,7 +73,7 @@ export const createRequest = async (req, res, next) => {
       } else if (item.item_id && item.quantity) {
         const pendingUnitIds = await prisma.requestItems.findMany({
           where: {
-            request: { status: "pending" },
+            request: { status: { in: ["pending", "in_transit"] } },
             unit: { item_id: parseInt(item.item_id) },
           },
           select: { unit_id: true },
@@ -281,6 +280,34 @@ export const getPendingRequests = async (req, res, next) => {
   }
 };
 
+export const getActiveRequests = async (req, res, next) => {
+  try {
+    const { request_type } = req.query;
+
+    const where = {
+      status: { in: ["pending", "in_transit"] },
+    };
+    if (request_type) where.request_type = request_type;
+
+    const requests = await prisma.requests.findMany({
+      where,
+      include: {
+        pic: true,
+        admin: true,
+        destination_location: true,
+        _count: {
+          select: { request_items: true },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    return sendSuccess(res, "Data active requests berhasil diambil", requests);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const approveRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -311,46 +338,98 @@ export const approveRequest = async (req, res, next) => {
       return sendError(res, `Request sudah ${request.status}`, 400);
     }
 
-    const statusMap = {
-      borrow: "borrowed",
-      transfer: "transferred",
-      sell: "sold",
-      demolish: "demolished",
-    };
+    // sell & demolish — finalize immediately, no transit needed
+    if (
+      request.request_type === "sell" ||
+      request.request_type === "demolish"
+    ) {
+      const statusMap = { sell: "sold", demolish: "demolished" };
+      const newItemStatus = statusMap[request.request_type];
 
-    const newStatus = statusMap[request.request_type];
+      for (const requestItem of request.request_items) {
+        await prisma.itemUnits.update({
+          where: { id: requestItem.unit_id },
+          data: { status: newItemStatus },
+        });
+      }
 
-    for (const requestItem of request.request_items) {
-      await prisma.itemUnits.update({
-        where: { id: requestItem.unit_id },
+      const updatedRequest = await prisma.requests.update({
+        where: { id: parseInt(id) },
         data: {
-          status: newStatus,
-          ...(request.destination_location_id && {
-            location_id: request.destination_location_id,
-          }),
+          status: "completed",
+          approved_at: new Date(),
+          admin_id: req.user.id,
+        },
+        include: {
+          pic: true,
+          admin: true,
+          destination_location: true,
+          request_items: {
+            include: { unit: { include: { item: true, location: true } } },
+          },
         },
       });
 
-      if (
-        request.request_type === "borrow" ||
-        request.request_type === "transfer"
-      ) {
-        await prisma.itemLogHistory.create({
-          data: {
-            unit_id: requestItem.unit_id,
-            from_location_id: requestItem.unit.location_id,
-            to_location_id: request.destination_location_id,
-            request_id: request.id,
-            moved_by_id: req.user.id,
-          },
-        });
+      const reportNumber = await generateReportNumber();
+      const pdfPath = await generateOfficialReport(
+        updatedRequest,
+        reportNumber,
+      );
+
+      await prisma.officialReports.create({
+        data: {
+          report_number: reportNumber,
+          report_type: request.request_type,
+          file_path: pdfPath,
+          request_id: request.id,
+          issued_by_id: req.user.id,
+          is_approved: true,
+          approved_by_id: req.user.id,
+          approved_at: new Date(),
+        },
+      });
+
+      await createAuditLog({
+        actor_id: req.user.id,
+        actor_role: req.user.role,
+        action: "APPROVE",
+        entity_type: "Requests",
+        entity_id: request.id,
+        description: `Request ${request.request_code} diapprove oleh ${req.user.username}`,
+        user_agent: req.headers["user-agent"],
+      });
+
+      await prisma.notifications.create({
+        data: {
+          user_id: updatedRequest.pic_id,
+          message: `Request ${updatedRequest.request_code} telah disetujui. Berita acara dapat diunduh.`,
+          type: "report",
+        },
+      });
+
+      if (updatedRequest.pic.telegram_id) {
+        const webUrl = process.env.WEB_URL || "https://masnando.com";
+        await sendTelegramMessage(
+          updatedRequest.pic.telegram_id,
+          `✅ Request ${updatedRequest.request_code} telah disetujui!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 Silakan unduh dokumen melalui website kami:\n${webUrl}/reports`,
+        );
       }
+
+      return sendSuccess(res, "Request berhasil diapprove", updatedRequest);
+    }
+
+    // borrow & transfer — mark in_transit, items set to in_transit
+    for (const requestItem of request.request_items) {
+      await prisma.itemUnits.update({
+        where: { id: requestItem.unit_id },
+        data: { status: "in_transit" },
+      });
     }
 
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: "approved",
+        status: "in_transit",
         approved_at: new Date(),
         admin_id: req.user.id,
       },
@@ -359,14 +438,124 @@ export const approveRequest = async (req, res, next) => {
         admin: true,
         destination_location: true,
         request_items: {
+          include: { unit: { include: { item: true, location: true } } },
+        },
+      },
+    });
+
+    await createAuditLog({
+      actor_id: req.user.id,
+      actor_role: req.user.role,
+      action: "APPROVE",
+      entity_type: "Requests",
+      entity_id: request.id,
+      description: `Request ${request.request_code} diapprove, barang dalam perjalanan`,
+      user_agent: req.headers["user-agent"],
+    });
+
+    await prisma.notifications.create({
+      data: {
+        user_id: updatedRequest.pic_id,
+        message: `Request ${updatedRequest.request_code} disetujui. Barang sedang dalam perjalanan ke lokasi tujuan.`,
+        type: "request",
+      },
+    });
+
+    if (updatedRequest.pic.telegram_id) {
+      await sendTelegramMessage(
+        updatedRequest.pic.telegram_id,
+        `✅ Request ${updatedRequest.request_code} disetujui!\n\n🚚 Barang sedang dalam perjalanan ke lokasi tujuan.`,
+      );
+    }
+
+    return sendSuccess(
+      res,
+      "Request diapprove, barang dalam perjalanan",
+      updatedRequest,
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const confirmArrival = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const request = await prisma.requests.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        pic: true,
+        request_items: {
           include: {
             unit: {
-              include: {
-                item: true,
-                location: true,
-              },
+              include: { item: true, location: true },
             },
           },
+        },
+        destination_location: true,
+      },
+    });
+
+    if (!request) {
+      return sendError(res, "Request tidak ditemukan", 404);
+    }
+
+    if (request.status !== "in_transit") {
+      return sendError(
+        res,
+        "Hanya request in_transit yang bisa dikonfirmasi kedatangannya",
+        400,
+      );
+    }
+
+    if (
+      request.request_type !== "transfer" &&
+      request.request_type !== "borrow"
+    ) {
+      return sendError(
+        res,
+        "Hanya transfer atau borrow yang bisa confirm arrival",
+        400,
+      );
+    }
+
+    const isTransfer = request.request_type === "transfer";
+    // transfer: item arrives and becomes available again at new location (can be re-transferred)
+    // borrow: item is marked borrowed until returned
+    const newItemStatus = isTransfer ? "available" : "borrowed";
+    // transfer → completed (no return needed), borrow → approved (waiting for return)
+    const newRequestStatus = isTransfer ? "completed" : "approved";
+
+    for (const requestItem of request.request_items) {
+      await prisma.itemUnits.update({
+        where: { id: requestItem.unit_id },
+        data: {
+          status: newItemStatus,
+          location_id: request.destination_location_id,
+        },
+      });
+
+      await prisma.itemLogHistory.create({
+        data: {
+          unit_id: requestItem.unit_id,
+          from_location_id: requestItem.unit.location_id,
+          to_location_id: request.destination_location_id,
+          request_id: request.id,
+          moved_by_id: req.user.id,
+        },
+      });
+    }
+
+    const updatedRequest = await prisma.requests.update({
+      where: { id: parseInt(id) },
+      data: { status: newRequestStatus },
+      include: {
+        pic: true,
+        admin: true,
+        destination_location: true,
+        request_items: {
+          include: { unit: { include: { item: true, location: true } } },
         },
       },
     });
@@ -393,14 +582,14 @@ export const approveRequest = async (req, res, next) => {
       action: "APPROVE",
       entity_type: "Requests",
       entity_id: request.id,
-      description: `Request ${request.request_code} diapprove oleh ${req.user.username}`,
+      description: `Kedatangan barang request ${request.request_code} dikonfirmasi oleh ${req.user.username}`,
       user_agent: req.headers["user-agent"],
     });
 
     await prisma.notifications.create({
       data: {
         user_id: updatedRequest.pic_id,
-        message: `Request ${updatedRequest.request_code} telah disetujui. Berita acara dapat diunduh.`,
+        message: `Barang dari request ${updatedRequest.request_code} telah tiba. Berita acara dapat diunduh.`,
         type: "report",
       },
     });
@@ -409,11 +598,15 @@ export const approveRequest = async (req, res, next) => {
       const webUrl = process.env.WEB_URL || "https://masnando.com";
       await sendTelegramMessage(
         updatedRequest.pic.telegram_id,
-        `✅ Request ${updatedRequest.request_code} telah disetujui!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 Silakan unduh dokumen melalui website kami:\n${webUrl}/reports`,
+        `📦 Barang dari request ${updatedRequest.request_code} telah tiba!\n\n📄 Berita Acara telah diterbitkan dan siap diunduh.\n\n👉 ${webUrl}/reports`,
       );
     }
 
-    return sendSuccess(res, "Request berhasil diapprove", updatedRequest);
+    return sendSuccess(
+      res,
+      "Kedatangan barang berhasil dikonfirmasi",
+      updatedRequest,
+    );
   } catch (err) {
     next(err);
   }
@@ -504,10 +697,6 @@ export const returnRequest = async (req, res, next) => {
     const { id } = req.params;
     const { return_location_id } = req.body;
 
-    if (!return_location_id) {
-      return sendError(res, "Lokasi return wajib diisi", 400);
-    }
-
     const request = await prisma.requests.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -537,20 +726,27 @@ export const returnRequest = async (req, res, next) => {
       return sendError(res, "Request sudah direturn", 400);
     }
 
-    const location = await prisma.locations.findUnique({
-      where: { id: parseInt(return_location_id) },
-    });
-
-    if (!location) {
-      return sendError(res, "Lokasi return tidak ditemukan", 404);
+    // If return_location_id provided, validate it; otherwise default to each unit's current location
+    let resolvedReturnLocationId = null;
+    if (return_location_id) {
+      const location = await prisma.locations.findUnique({
+        where: { id: parseInt(return_location_id) },
+      });
+      if (!location) {
+        return sendError(res, "Lokasi return tidak ditemukan", 404);
+      }
+      resolvedReturnLocationId = parseInt(return_location_id);
     }
 
     for (const requestItem of request.request_items) {
+      const unitReturnLocationId =
+        resolvedReturnLocationId ?? requestItem.unit.location_id;
+
       await prisma.itemUnits.update({
         where: { id: requestItem.unit_id },
         data: {
           status: "available",
-          location_id: parseInt(return_location_id),
+          location_id: unitReturnLocationId,
         },
       });
 
@@ -558,7 +754,7 @@ export const returnRequest = async (req, res, next) => {
         data: {
           unit_id: requestItem.unit_id,
           from_location_id: requestItem.unit.location_id,
-          to_location_id: parseInt(return_location_id),
+          to_location_id: unitReturnLocationId,
           request_id: request.id,
           moved_by_id: req.user.id,
         },
@@ -570,7 +766,10 @@ export const returnRequest = async (req, res, next) => {
       data: {
         status: "completed",
         returned_at: new Date(),
-        return_location_id: parseInt(return_location_id),
+        return_location_id:
+          resolvedReturnLocationId ??
+          request.request_items[0]?.unit.location_id ??
+          null,
         returned_by_id: req.user.id,
       },
       include: {
@@ -698,7 +897,7 @@ export const cancelRequest = async (req, res, next) => {
     const updatedRequest = await prisma.requests.update({
       where: { id: parseInt(id) },
       data: {
-        status: "rejected",
+        status: "cancelled",
       },
       include: {
         pic: true,

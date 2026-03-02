@@ -18,5 +18,15 @@ export function usePermintaanAction() {
     onSuccess: invalidate,
   });
 
-  return { approve, reject };
+  const confirmArrival = useMutation({
+    mutationFn: (id: number) => permintaanAPI.confirmArrival(id),
+    onSuccess: invalidate,
+  });
+
+  const returnBorrow = useMutation({
+    mutationFn: (id: number) => permintaanAPI.returnBorrow(id),
+    onSuccess: invalidate,
+  });
+
+  return { approve, reject, confirmArrival, returnBorrow };
 }

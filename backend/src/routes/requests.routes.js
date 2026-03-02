@@ -6,7 +6,9 @@ import {
   getMyRequests,
   getMyRequestById,
   getPendingRequests,
+  getActiveRequests,
   approveRequest,
+  confirmArrival,
   rejectRequest,
   returnRequest,
   cancelRequest,
@@ -23,8 +25,10 @@ router.get("/", checkRole("admin"), getRequests);
 router.get("/my-requests", getMyRequests);
 router.get("/my-requests/:id", getMyRequestById);
 router.get("/pending", checkRole("admin"), getPendingRequests);
+router.get("/active", checkRole("admin"), getActiveRequests);
 router.get("/:id", getRequestById);
 router.put("/:id/approve", checkRole("admin"), approveRequest);
+router.put("/:id/confirm-arrival", checkRole("admin"), confirmArrival);
 router.put("/:id/reject", checkRole("admin"), rejectRequest);
 router.put("/:id/return", returnRequest);
 router.put("/:id/cancel", cancelRequest);
