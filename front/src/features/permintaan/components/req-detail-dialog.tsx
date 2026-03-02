@@ -22,8 +22,10 @@ const REQUEST_TYPE_LABEL: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Menunggu",
+  in_transit: "Dalam Perjalanan",
   approved: "Disetujui",
   rejected: "Ditolak",
+  cancelled: "Dibatalkan",
   completed: "Selesai",
 };
 
@@ -31,7 +33,10 @@ function statusClass(status: string) {
   switch (status) {
     case "approved":
       return "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200";
+    case "in_transit":
+      return "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 border-orange-200";
     case "rejected":
+    case "cancelled":
       return "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-200";
     case "completed":
       return "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200";
@@ -140,9 +145,11 @@ export function ReqDetailDialog({
               {request.admin && (
                 <div>
                   <p className="text-muted-foreground text-xs mb-0.5">
-                    {request.status === "approved"
-                      ? "Disetujui oleh"
-                      : "Ditolak oleh"}
+                    {request.status === "rejected"
+                      ? "Ditolak oleh"
+                      : request.status === "pending"
+                        ? "Diproses oleh"
+                        : "Diproses oleh"}
                   </p>
                   <p className="font-medium">{request.admin.name}</p>
                   {request.approved_at && (

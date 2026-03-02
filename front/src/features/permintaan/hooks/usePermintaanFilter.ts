@@ -18,7 +18,11 @@ export function usePermintaanFilter(requests: RequestData[]) {
     let result =
       activeStatus === "all"
         ? requests
-        : requests.filter((r) => r.status === activeStatus);
+        : activeStatus === "returning"
+          ? requests.filter(
+              (r) => r.request_type === "borrow" && r.status === "approved",
+            )
+          : requests.filter((r) => r.status === activeStatus);
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();

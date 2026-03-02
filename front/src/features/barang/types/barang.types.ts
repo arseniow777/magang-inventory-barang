@@ -6,7 +6,8 @@ export type ItemStatus =
   | "borrowed"
   | "transferred"
   | "sold"
-  | "demolished";
+  | "demolished"
+  | "in_transit";
 
 // users
 export interface User {

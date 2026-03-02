@@ -8,7 +8,10 @@ import { useAuthUser, Role } from "@/hooks/useAuthUser";
 const ALL_TABS = [
   { value: "pending", label: "Menunggu" },
   { value: "approved", label: "Disetujui" },
+  { value: "returning", label: "Pengembalian" },
   { value: "rejected", label: "Ditolak" },
+  { value: "in_transit", label: "Berlangsung" },
+  { value: "completed", label: "Selesai" },
   { value: "all", label: "Semua" },
 ];
 

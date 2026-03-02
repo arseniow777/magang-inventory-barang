@@ -3,7 +3,7 @@ export interface RequestData {
   request_code: string;
   request_type: "borrow" | "transfer" | "sell" | "demolish";
   reason: string;
-  status: "pending" | "approved" | "rejected" | "completed";
+  status: "pending" | "approved" | "rejected" | "completed" | "in_transit";
   approved_at: string | null;
   created_at: string;
   destination_location: {

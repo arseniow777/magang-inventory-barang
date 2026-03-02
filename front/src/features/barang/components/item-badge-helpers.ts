@@ -25,6 +25,7 @@ export const statusLabel: Record<ItemStatus, string> = {
   transferred: "Dipindah",
   sold: "Dijual",
   demolished: "Dimusnahkan",
+  in_transit: "Perjalanan",
 };
 
 export const statusVariant: Record<
