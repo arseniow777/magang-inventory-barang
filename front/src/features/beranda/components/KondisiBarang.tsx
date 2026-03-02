@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Pie, PieChart, Label } from "recharts";
+// import { type PieSectorDataItem } from "recharts/types/polar/Pie";
 import {
   ChartContainer,
   ChartLegend,
@@ -11,6 +12,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useItemConditionSummary } from "@/features/barang/hooks/useBarangItems";
+import { EmptyState } from "@/components/empty-state";
 
 const chartConfig = {
   kondisiBarang: {
@@ -55,6 +57,10 @@ export default function KondisiBarang() {
     return data.good + data.damaged + data.broken;
   }, [data]);
 
+  // const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
+  //   undefined,
+  // );
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
@@ -65,11 +71,15 @@ export default function KondisiBarang() {
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
           Memuat data...
         </div>
+      ) : total === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <EmptyState description="Tidak ada barang" />
+        </div>
       ) : (
         <div className="flex-1 overflow-auto min-h-0">
           <ChartContainer
             config={chartConfig}
-            className="mx-auto aspect-square max-h-[300px]"
+            className="mx-auto aspect-square max-h-75"
           >
             <PieChart>
               <ChartTooltip
