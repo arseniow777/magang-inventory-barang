@@ -2,12 +2,10 @@ import prisma from "../config/prisma.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/audit.js";
 import { sendTelegramMessage } from "../utils/telegramBot.js";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import { generateOfficialReport } from "../utils/pdfGenerator.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 export const getReports = async (req, res, next) => {
   try {
@@ -240,36 +238,40 @@ export const downloadReport = async (req, res, next) => {
     const report = await prisma.officialReports.findUnique({
       where: { id: parseInt(id) },
       include: {
-        request: true,
+        request: {
+          include: {
+            pic: true,
+            admin: true,
+            destination_location: true,
+            request_items: {
+              include: {
+                unit: {
+                  include: { item: true, location: true },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    if (!report) {
-      return sendError(res, "Report tidak ditemukan", 404);
-    }
+    if (!report) return sendError(res, "Report tidak ditemukan", 404);
 
     if (!report.is_approved && req.user.role !== "admin") {
-      return sendError(
-        res,
-        "Report belum diapprove, tidak dapat didownload",
-        403,
-      );
+      return sendError(res, "Report belum diapprove", 403);
     }
 
-    const filePath = path.join(__dirname, "../../", report.file_path);
-
-    if (!fs.existsSync(filePath)) {
-      return sendError(res, "File PDF tidak ditemukan", 404);
-    }
+    const pdfBuffer = await generateOfficialReport(
+      report.request,
+      report.report_number,
+    );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `inline; filename=${report.report_number}.pdf`,
     );
-
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
+    res.send(pdfBuffer);
   } catch (err) {
     next(err);
   }

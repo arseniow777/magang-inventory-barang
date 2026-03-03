@@ -6,12 +6,13 @@ import {
   generateUnitCode,
   generateMultipleUnitCodes,
 } from "../utils/smartCode.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+// import fs from "fs";
+// import path from "path";
+// import { fileURLToPath } from "url";
+import { cloudinary } from "../utils/upload.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 export const createItem = async (req, res, next) => {
   try {
@@ -66,7 +67,7 @@ export const createItem = async (req, res, next) => {
 
     if (req.files && req.files.length > 0) {
       const photoData = req.files.map((file) => ({
-        file_path: `/uploads/items/${file.filename}`,
+        file_path: file.path,
         item_id: item.id,
       }));
       await prisma.itemPhotos.createMany({ data: photoData });
@@ -345,7 +346,7 @@ export const addItemPhoto = async (req, res, next) => {
     const filesToUpload = req.files.slice(0, remainingSlots);
 
     const photoData = filesToUpload.map((file) => ({
-      file_path: `/uploads/items/${file.filename}`,
+      file_path: file.path,
       item_id: item.id,
     }));
 
@@ -374,10 +375,17 @@ export const deleteItemPhoto = async (req, res, next) => {
       return sendError(res, "Foto tidak ditemukan", 404);
     }
 
-    const filePath = path.join(__dirname, "../../", photo.file_path);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // const filePath = path.join(__dirname, "../../", photo.file_path);
+    // if (fs.existsSync(filePath)) {
+    //   fs.unlinkSync(filePath);
+    // }
+
+    const publicId = photo.file_path
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .split(".")[0];
+    await cloudinary.uploader.destroy(publicId);
 
     await prisma.itemPhotos.delete({ where: { id: parseInt(photoId) } });
 

@@ -371,16 +371,13 @@ export const approveRequest = async (req, res, next) => {
       });
 
       const reportNumber = await generateReportNumber();
-      const pdfPath = await generateOfficialReport(
-        updatedRequest,
-        reportNumber,
-      );
+      await generateOfficialReport(updatedRequest, reportNumber);
 
       await prisma.officialReports.create({
         data: {
           report_number: reportNumber,
           report_type: request.request_type,
-          file_path: pdfPath,
+          file_path: reportNumber,
           request_id: request.id,
           issued_by_id: req.user.id,
           is_approved: true,
@@ -444,6 +441,22 @@ export const approveRequest = async (req, res, next) => {
         },
       });
 
+      const reportNumber = await generateReportNumber();
+      await generateOfficialReport(updatedRequest, reportNumber);
+
+      await prisma.officialReports.create({
+        data: {
+          report_number: reportNumber,
+          report_type: request.request_type,
+          file_path: reportNumber,
+          request_id: request.id,
+          issued_by_id: req.user.id,
+          is_approved: true,
+          approved_by_id: req.user.id,
+          approved_at: new Date(),
+        },
+      });
+
       await createAuditLog({
         actor_id: req.user.id,
         actor_role: req.user.role,
@@ -498,6 +511,22 @@ export const approveRequest = async (req, res, next) => {
         request_items: {
           include: { unit: { include: { item: true, location: true } } },
         },
+      },
+    });
+
+    const reportNumber = await generateReportNumber();
+    await generateOfficialReport(updatedRequest, reportNumber);
+
+    await prisma.officialReports.create({
+      data: {
+        report_number: reportNumber,
+        report_type: request.request_type,
+        file_path: reportNumber,
+        request_id: request.id,
+        issued_by_id: req.user.id,
+        is_approved: true,
+        approved_by_id: req.user.id,
+        approved_at: new Date(),
       },
     });
 
@@ -619,13 +648,14 @@ export const confirmArrival = async (req, res, next) => {
     });
 
     const reportNumber = await generateReportNumber();
-    const pdfPath = await generateOfficialReport(updatedRequest, reportNumber);
+    // const pdfPath = await generateOfficialReport(updatedRequest, reportNumber);
+    await generateOfficialReport(updatedRequest, reportNumber);
 
     await prisma.officialReports.create({
       data: {
         report_number: reportNumber,
         report_type: request.request_type,
-        file_path: pdfPath,
+        file_path: reportNumber,
         request_id: request.id,
         issued_by_id: req.user.id,
         is_approved: true,
