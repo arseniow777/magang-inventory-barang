@@ -37,6 +37,7 @@ export const statusVariant: Record<
   transferred: "outline",
   sold: "outline",
   demolished: "destructive",
+  in_transit: "outline",
 };
 
 // ── Audit action ─────────────────────────────────────────────────────────────

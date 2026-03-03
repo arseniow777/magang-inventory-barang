@@ -4,7 +4,7 @@ import type { ReportData } from "../types/permintaan.types";
 export const reportsAPI = {
   // Get all reports
   getReports: (params?: { report_type?: string; is_approved?: boolean }) =>
-    apiClient.get<ReportData[]>("/reports", params),
+    apiClient.get<ReportData[]>("/reports"),
 
   // Get single report
   getReport: (id: number) => apiClient.get<ReportData>(`/reports/${id}`),
