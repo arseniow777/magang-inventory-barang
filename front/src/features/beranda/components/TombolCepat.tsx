@@ -17,12 +17,12 @@ const quickButtons = [
   {
     label: "Tambahkan Pengguna",
     icon: IconUserPlus,
-    to: "/dashboard/pengguna/create",
+    to: "/dashboard/pengguna/tambahPengguna",
   },
   {
     label: "Tambahkan Lokasi",
     icon: IconMapPin,
-    to: "/dashboard/lokasi/create",
+    to: "/dashboard/lokasi/tambah",
   },
   {
     label: "Log out",

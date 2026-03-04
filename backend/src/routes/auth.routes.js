@@ -1,9 +1,18 @@
 import { Router } from "express";
-import { login, getMe, logout } from "../controllers/auth.controller.js";
+import {
+  login,
+  getMe,
+  logout,
+  forgotPassword,
+} from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+router.post("/forgot-password", forgotPassword);
+
+router.post("/forgot-password", forgotPassword);
 
 // Brute-force protection: max 10 login attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
