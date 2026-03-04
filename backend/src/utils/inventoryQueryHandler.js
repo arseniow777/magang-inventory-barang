@@ -1,303 +1,191 @@
-import { toolDeclarations, executeTool } from "./inventoryTools.js";
+// inventoryQueryHandler.js
+import {
+  getItemInfo,
+  getAvailableItems,
+  getMostBorrowedItems,
+  getUserActiveLoans,
+  getItemLocation,
+  getItemStock,
+  getItemHistoryLocation,
+} from "./inventoryFunctions.js";
 
-const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
-const MODEL = process.env.OLLAMA_MODEL || "functiongemma";
-
-// ─── Intent Pre-Routing ───────────────────────────────────────────────────────
-// Detect user intent from message patterns and directly invoke the right tool,
-// bypassing AI tool-call unreliability on small local models.
-
-const INTENT_PATTERNS = [
-  {
-    // "lokasi laptop", "di mana laptop", "laptop ada di mana"
-    pattern:
-      /\b(?:lokasi|dimana|di mana|letak|tempat)\b.*?([a-z0-9\s\-_]+?)(?:\?|$)|([a-z0-9\s\-_]+?)\s+(?:ada di|dimana|di mana)/i,
-    tool: "getItemLocation",
-    extractKeyword: (text) => {
-      const m =
-        text.match(/(?:lokasi|dimana|di mana|letak|tempat)\s+(.+)/i) ||
-        text.match(/(.+?)\s+(?:ada di|dimana|di mana)/i);
-      return m ? m[1].trim() : null;
-    },
-  },
-  {
-    // "stok laptop", "berapa laptop", "jumlah laptop"
-    pattern:
-      /\b(?:stok|stock|berapa|jumlah|sisa)\b.*?([a-z0-9\s\-_]+?)(?:\?|$)/i,
-    tool: "getItemStock",
-    extractKeyword: (text) => {
-      const m = text.match(/(?:stok|stock|berapa|jumlah|sisa)\s+(.+)/i);
-      return m ? m[1].replace(/\?$/, "").trim() : null;
-    },
-  },
-  {
-    // "barang tersedia", "ada apa saja", "list barang"
-    pattern: /\b(?:tersedia|available|daftar barang|barang apa|ada apa)\b/i,
-    tool: "getAvailableItems",
-    extractKeyword: (text) => {
-      const m = text.match(/(?:tersedia|available|daftar|ada)\s+(.+)/i);
-      return m ? m[1].replace(/\?$/, "").trim() : null;
-    },
-  },
-  {
-    // "paling sering dipinjam", "barang populer"
-    pattern:
-      /\b(?:sering dipinjam|paling sering|populer|terbanyak dipinjam)\b/i,
-    tool: "getMostBorrowedItems",
-    extractKeyword: () => null,
-  },
-  {
-    // "pinjaman saya", "aktif pinjam", "saya pinjam apa"
-    pattern:
-      /\b(?:pinjaman saya|pinjam saya|pinjaman aktif|saya pinjam|aktif pinjam)\b/i,
-    tool: "getUserActiveLoans",
-    extractKeyword: () => null,
-  },
-  {
-    // "terlambat", "overdue", "belum dikembalikan"
-    pattern: /\b(?:terlambat|overdue|belum dikembalikan|lewat batas)\b/i,
-    tool: "getOverdueItems",
-    extractKeyword: () => null,
-  },
-  {
-    // "info laptop", "detail iMac M3", "tentang proyektor", or bare item name like "iMac M3"
-    pattern:
-      /\b(?:info|detail|tentang|cek|lihat)\b|^[a-z0-9][a-z0-9\s\-+.]{1,40}$/i,
-    tool: "getItemInfo",
-    extractKeyword: (text) => {
-      const m = text.match(/(?:info|detail|tentang|cek|lihat)\s+(.+)/i);
-      return m ? m[1].trim() : text.trim();
-    },
-  },
-];
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "https://ferdiannf-inventel-ai-service.hf.space";
 
 /**
- * Try to detect intent and extract tool name + args from the message.
- * Returns null if no pattern matched.
+ * Kirim pesan user ke AI service, eksekusi function call yang dikembalikan,
+ * lalu return hasil sebagai string untuk dikirim ke Telegram.
+ *
+ * @param {string} message - Pesan user dari Telegram
+ * @param {string} userId  - ID user dari database (bukan telegram_id)
+ * @returns {string|null}  - Teks balasan, atau null kalau AI service tidak bisa diakses
  */
-const detectIntent = (text) => {
-  const lower = text.toLowerCase().trim();
-  for (const intent of INTENT_PATTERNS) {
-    if (intent.pattern.test(lower)) {
-      const keyword = intent.extractKeyword(lower);
-      const args = keyword ? { keyword } : {};
-      return { tool: intent.tool, args };
-    }
-  }
-  return null;
-};
-
-const SYSTEM_MESSAGE = {
-  role: "system",
-  content:
-    "Kamu adalah asisten inventaris yang membantu pengguna mencari informasi tentang barang, stok, lokasi, dan pinjaman. " +
-    "Jawab dalam Bahasa Indonesia yang santai dan ramah. " +
-    "Gunakan format Telegram Markdown (bold dengan *teks*, italic dengan _teks_). " +
-    "Selalu gunakan tool yang tersedia untuk mengambil data real dari sistem. " +
-    "Jika data tidak ditemukan, berikan saran yang membantu.",
-};
-
-/**
- * Send messages to Ollama — with tool declarations (for intent detection).
- */
-const ollamaChat = async (messages) => {
-  const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      tools: toolDeclarations,
-      stream: false,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Ollama error: ${response.status} ${await response.text()}`,
-    );
-  }
-
-  const data = await response.json();
-  return data.message;
-};
-
-// ─── Result Formatters ────────────────────────────────────────────────────────
-// Format tool results into human-readable Telegram Markdown directly in JS.
-// This is more reliable than asking a small local model to format JSON.
-
-const formatters = {
-  getItemLocation(result) {
-    if (!result.found) return `❌ ${result.message}`;
-    const locationSet = new Set(result.items.map((u) => u.location));
-    const statusCount = {};
-    result.items.forEach((u) => {
-      statusCount[u.status] = (statusCount[u.status] || 0) + 1;
-    });
-    const STATUS_SHORT_LOC = {
-      available: "Avl",
-      in_transit: "Transit",
-      borrowed: "Bor",
-      transferred: "Trf",
-      sold: "Sold",
-      demolished: "Dem",
-    };
-    const statusStr = Object.entries(statusCount)
-      .map(([s, c]) => `${STATUS_SHORT_LOC[s] ?? s}: ${c}`)
-      .join(" | ");
-    return (
-      `📍 *Lokasi: ${result.items[0]?.name ?? "—"}*\n` +
-      `   ${[...locationSet].join(", ")}\n\n` +
-      `   Total: ${result.items.length} unit\n` +
-      `   • Status: ${statusStr}`
-    );
-  },
-
-  getItemStock(result) {
-    if (!result.found) return `❌ ${result.message}`;
-    const STATUS_SHORT = {
-      available: "Avl",
-      in_transit: "Transit",
-      borrowed: "Bor",
-      transferred: "Trf",
-      sold: "Sold",
-      demolished: "Dem",
-    };
-    const breakdown = Object.entries(result.breakdown)
-      .map(([s, c]) => `${STATUS_SHORT[s] ?? s} ${c}`)
-      .join(" | ");
-    return (
-      `📦 *Stok "${result.keyword}"*\n\n` +
-      `   Total Unit : *${result.total} unit*\n` +
-      `   Status   : ${breakdown}`
-    );
-  },
-
-  getAvailableItems(result) {
-    if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items
-      .slice(0, 8)
-      .map((item) => `• *${item.name}* — ${item.count} unit`);
-    const more =
-      result.items.length > 8
-        ? `\n_...dan ${result.items.length - 8} barang lainnya_`
-        : "";
-    return `📦 *Barang Tersedia* (${result.total} unit)\n\n${lines.join("\n")}${more}`;
-  },
-
-  getMostBorrowedItems(result) {
-    if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items
-      .slice(0, 5)
-      .map((item, i) => `${i + 1}. *${item.name}* — ${item.count}x`);
-    return `🏆 *Paling Sering Dipinjam*\n\n${lines.join("\n")}`;
-  },
-
-  getUserActiveLoans(result) {
-    if (!result.found) return `ℹ️ ${result.message}`;
-    const lines = result.loans.map(
-      (loan) =>
-        `• *${loan.request_code}* — _${loan.status}_\n` +
-        `  ${loan.items.map((i) => i.name).join(", ")}`,
-    );
-    return `📋 *Pinjaman Aktif* (${result.loans.length})\n\n${lines.join("\n\n")}`;
-  },
-
-  getOverdueItems(result) {
-    if (!result.found) return `ℹ️ ${result.message}`;
-    const lines = result.overdues.map(
-      (r) =>
-        `• 👤 *${r.pic_name}* — ${r.items.length} barang\n` +
-        `  ⏰ ${r.days_overdue} hari terlambat (${r.request_code})`,
-    );
-    return `⚠️ *Terlambat Dikembalikan* (${result.overdues.length})\n\n${lines.join("\n\n")}`;
-  },
-
-  getItemInfo(result) {
-    if (!result.found) return `❌ ${result.message}`;
-    const lines = result.items.map((item) => {
-      const statusCount = {};
-      const conditionCount = {};
-      const locationSet = new Set();
-
-      item.units.forEach((u) => {
-        statusCount[u.status] = (statusCount[u.status] || 0) + 1;
-        conditionCount[u.condition] = (conditionCount[u.condition] || 0) + 1;
-        if (u.location) locationSet.add(u.location);
-      });
-
-      const STATUS_SHORT = {
-        available: "Avl",
-        in_transit: "Transit",
-        borrowed: "Bor",
-        transferred: "Trf",
-        sold: "Sold",
-        demolished: "Dem",
-      };
-      const CONDITION_SHORT = {
-        good: "Good",
-        damaged: "Dmg",
-        broken: "Brk",
-      };
-
-      const statusStr = Object.entries(statusCount)
-        .map(([s, c]) => `${STATUS_SHORT[s] ?? s} ${c}`)
-        .join(" | ");
-      const conditionStr = Object.entries(conditionCount)
-        .map(([c, n]) => `${CONDITION_SHORT[c] ?? c} ${n}`)
-        .join(" | ");
-      const locationStr = locationSet.size ? [...locationSet].join(", ") : "—";
-      const picStr = item.pic_master ? ` | 👤 ${item.pic_master}` : "";
-
-      return (
-        `📦 *${item.name}* | \`${item.model_code}\` | ${item.category} | ${item.procurement_year}\n` +
-        `   📍 ${locationStr}${picStr}\n\n` +
-        `   Total    : ${item.total_units}\n` +
-        `   Status   : ${statusStr}\n` +
-        `   Kondisi  : ${conditionStr}`
-      );
-    });
-    return lines.join("\n\n");
-  },
-};
-
-/**
- * Handle a message from a Telegram user via Ollama AI.
- * @param {string} userMessage - The message text from the user
- * @param {number|null} userId - The internal DB user ID (for personalized queries)
- * @returns {Promise<string>} - Formatted response to send back
- */
-export const handleInventoryQuery = async (userMessage, userId = null) => {
+export const handleInventoryQuery = async (message, userId) => {
   try {
-    // ── Step 1: Try intent pre-routing (reliable, regex-based) ──────────────
-    const intent = detectIntent(userMessage);
-    if (intent) {
-      const toolResult = await executeTool(intent.tool, intent.args, userId);
-      const formatter = formatters[intent.tool];
-      return formatter ? formatter(toolResult) : JSON.stringify(toolResult);
+    console.log(`\n${'═'.repeat(50)}`);
+    console.log(`📩 [INCOMING] User: ${userId}`);
+    console.log(`💬 Message: "${message}"`);
+    console.log(`⏰ Time: ${new Date().toLocaleString('id-ID')}`);
+    console.log('═'.repeat(50));
+
+    // 1. Kirim ke AI service
+    console.log(`🔄 [AI REQUEST] POST ${AI_SERVICE_URL}/predict`);
+    const response = await fetch(`${AI_SERVICE_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, userId: userId.toString() }),
+      signal: AbortSignal.timeout(30000), // timeout 30 detik
+    });
+
+    if (!response.ok) {
+      console.error("AI service error:", response.status);
+      return null;
     }
 
-    // ── Step 2: Fall back to AI with tool declarations ──────────────────────
-    const messages = [SYSTEM_MESSAGE, { role: "user", content: userMessage }];
+    const result = await response.json();
+    console.log(`✅ [AI RESPONSE] Type: ${result.type}`);
+    console.log(`📋 [AI RESPONSE] Data:`, JSON.stringify(result, null, 2));
 
-    const assistantMsg = await ollamaChat(messages);
-
-    if (assistantMsg.tool_calls?.length) {
-      const call = assistantMsg.tool_calls[0];
-      const { name, arguments: args } = call.function;
-
-      const toolResult = await executeTool(name, args || {}, userId);
-
-      messages.push(assistantMsg);
-      messages.push({ role: "tool", content: JSON.stringify(toolResult) });
-
-      const finalMsg = await ollamaChat(messages);
-      return finalMsg?.content || JSON.stringify(toolResult);
+    // 2. Kalau model jawab teks biasa (NO_FUNCTION_CALL)
+    if (result.type === "text") {
+      console.log(`💬 [RESULT] Teks biasa (NO_FUNCTION_CALL)`);
+      const reply = result.text || "Maaf, saya tidak mengerti pertanyaan Anda.";
+      console.log(`📤 [REPLY] ${reply.substring(0, 100)}...`);
+      return reply;
     }
 
-    return assistantMsg?.content || "Maaf, tidak ada respons dari AI.";
-  } catch (error) {
-    console.error("AI query error:", error.message);
-    return "Maaf, terjadi kesalahan saat memproses pertanyaan kamu. Coba lagi nanti.";
+    // 3. Kalau model panggil fungsi
+    if (result.type === "function_call" && result.calls?.length > 0) {
+      const call = result.calls[0];
+      const { name, arguments: args } = call;
+
+      console.log(`⚡ [FUNCTION CALL] ${name}(${JSON.stringify(args)})`);
+      const data = await executeFunction(name, args, userId);
+      console.log(`📊 [DB RESULT] ${name}:`, JSON.stringify(data, null, 2).substring(0, 300));
+      const reply = formatResponse(name, data);
+      console.log(`📤 [REPLY] ${reply.substring(0, 150)}...`);
+      return reply;
+    }
+
+    return "Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.";
+
+  } catch (err) {
+    // Timeout atau AI service tidak bisa diakses
+    if (err.name === "TimeoutError" || err.name === "AbortError") {
+      console.error("❌ [TIMEOUT] AI service tidak merespons dalam 30 detik");
+      return null;
+    }
+    console.error(`❌ [ERROR] handleInventoryQuery: ${err.message}`);
+    return null;
   }
 };
+
+// ── Eksekusi fungsi DB sesuai nama yang dipanggil model ──────────────────────
+async function executeFunction(name, args, userId) {
+  switch (name) {
+    case "getItemInfo":
+      return await getItemInfo(args.keyword);
+
+    case "getAvailableItems":
+      return await getAvailableItems(args.keyword || "");
+
+    case "getMostBorrowedItems":
+      return await getMostBorrowedItems(parseInt(args.limit) || 5);
+
+    case "getUserActiveLoans":
+      // Pakai userId dari session, bukan dari args — lebih aman
+      return await getUserActiveLoans(userId);
+
+    case "getItemLocation":
+      return await getItemLocation(args.keyword);
+
+    case "getItemStock":
+      return await getItemStock(args.keyword);
+
+    case "getItemHistoryLocation":
+      return await getItemHistoryLocation(args.keyword || "");
+
+    default:
+      return null;
+  }
+}
+
+// ── Format hasil DB jadi teks Markdown untuk Telegram ────────────────────────
+function formatResponse(functionName, data) {
+  if (!data) return "Maaf, data tidak ditemukan.";
+  if (data.error) return `❌ ${data.error}`;
+  if (!data.found) return `ℹ️ ${data.message || "Data tidak ditemukan."}`;
+
+  switch (functionName) {
+
+    case "getItemInfo": {
+      return data.items.map((item) => {
+        const unitLines = item.units.map((u) => {
+          const picInfo = u.pic
+            ? `\n      └ Dipinjam oleh: ${u.pic.name} (${u.pic.request_code})`
+            : "";
+          return `  • ${u.unit_code} — ${u.status} | ${u.condition} | ${u.location}${picInfo}`;
+        }).join("\n");
+
+        return (
+          `📦 *${item.name}* (${item.model_code})\n` +
+          `Kategori: ${item.category}\n` +
+          `Total unit: ${item.total_units}\n` +
+          `PIC: ${item.pic_master || "-"}\n` +
+          `Unit:\n${unitLines}`
+        );
+      }).join("\n\n");
+    }
+
+    case "getAvailableItems": {
+      const lines = data.items.map((item) =>
+        `  • *${item.name}* (${item.category}) — ${item.count} unit tersedia\n    Lokasi: ${item.locations.join(", ") || "-"}`
+      ).join("\n");
+      return `✅ *Item Tersedia* (${data.total} unit)\n\n${lines}`;
+    }
+
+    case "getMostBorrowedItems": {
+      const lines = data.items.map((item, i) =>
+        `${i + 1}. *${item.name}* (${item.category}) — ${item.count}x dipinjam`
+      ).join("\n");
+      return `📊 *Item Paling Sering Dipinjam*\n\n${lines}`;
+    }
+
+    case "getUserActiveLoans": {
+      const lines = data.loans.map((loan) => {
+        const items = loan.items.map((i) =>
+          `    • ${i.name} (${i.unit_code}) — ${i.location}`
+        ).join("\n");
+        return `📋 *${loan.request_code}* — ${loan.status}\n${items}`;
+      }).join("\n\n");
+      return `🔖 *Pinjaman Aktif Anda*\n\n${lines}`;
+    }
+
+    case "getItemLocation": {
+      const lines = data.items.map((item) =>
+        `  • *${item.name}* (${item.unit_code})\n    📍 ${item.location}\n    Status: ${item.status} | ${item.condition}`
+      ).join("\n\n");
+      return `📍 *Lokasi Barang*\n\n${lines}`;
+    }
+
+    case "getItemStock": {
+      const breakdown = Object.entries(data.breakdown)
+        .map(([status, count]) => `  • ${status}: ${count} unit`)
+        .join("\n");
+      return (
+        `📦 *Stok: ${data.keyword}*\n\n` +
+        `Total: ${data.total} unit\n\n` +
+        `Rincian:\n${breakdown}`
+      );
+    }
+
+    case "getItemHistoryLocation": {
+      const lines = data.history.map((log) =>
+        `  • *${log.unit_code}* — ${log.item_name}\n    ${log.from} → ${log.to}\n    Oleh: ${log.moved_by} | ${new Date(log.moved_at).toLocaleDateString("id-ID")}`
+      ).join("\n\n");
+      return `🗂️ *Riwayat Perpindahan* (${data.total} log)\n\n${lines}`;
+    }
+
+    default:
+      return "Data berhasil diambil.";
+  }
+}

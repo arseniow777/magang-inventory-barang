@@ -573,6 +573,17 @@ if (bot) {
     await bot.sendChatAction(chatId, "typing");
     try {
       const aiResponse = await handleInventoryQuery(text, user.id);
+
+      // null = Ollama offline (laptop mati / Tailscale tidak aktif)
+      if (aiResponse === null) {
+        await bot.sendMessage(
+          chatId,
+          `⚠️ Fitur pencarian AI sedang tidak aktif.\n\nGunakan menu di bawah ini:`,
+          { parse_mode: "Markdown", reply_markup: getMenu() },
+        );
+        return;
+      }
+
       const reply =
         aiResponse && aiResponse.trim()
           ? aiResponse
