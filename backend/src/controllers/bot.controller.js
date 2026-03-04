@@ -24,7 +24,12 @@ export const getUserByTelegram = async (req, res, next) => {
       },
     });
 
-    if (!user) return sendError(res, "User tidak ditemukan", 404);
+    if (!user)
+      return sendError(
+        res,
+        "Anda tidak terdaftar dalam sistem. Hubungi admin untuk mendaftarkan akun Telegram Anda.",
+        404,
+      );
 
     return sendSuccess(res, "Data user berhasil diambil", user);
   } catch (err) {
@@ -37,7 +42,12 @@ export const getLatestRequestByTelegram = async (req, res, next) => {
     const { telegram_id } = req.params;
 
     const user = await prisma.users.findFirst({ where: { telegram_id } });
-    if (!user) return sendError(res, "User tidak ditemukan", 404);
+    if (!user)
+      return sendError(
+        res,
+        "Anda tidak terdaftar dalam sistem. Hubungi admin untuk mendaftarkan akun Telegram Anda.",
+        404,
+      );
 
     const request = await prisma.requests.findFirst({
       where: { pic_id: user.id },
@@ -61,7 +71,12 @@ export const getLatestReportByTelegram = async (req, res, next) => {
     const { telegram_id } = req.params;
 
     const user = await prisma.users.findFirst({ where: { telegram_id } });
-    if (!user) return sendError(res, "User tidak ditemukan", 404);
+    if (!user)
+      return sendError(
+        res,
+        "Anda tidak terdaftar dalam sistem. Hubungi admin untuk mendaftarkan akun Telegram Anda.",
+        404,
+      );
 
     const report = await prisma.officialReports.findFirst({
       where: {
@@ -125,7 +140,12 @@ export const contactAdmin = async (req, res, next) => {
     }
 
     const user = await prisma.users.findFirst({ where: { telegram_id } });
-    if (!user) return sendError(res, "User tidak ditemukan", 404);
+    if (!user)
+      return sendError(
+        res,
+        "Anda tidak terdaftar dalam sistem. Hubungi admin untuk mendaftarkan akun Telegram Anda.",
+        404,
+      );
 
     const admins = await prisma.users.findMany({ where: { role: "admin" } });
 

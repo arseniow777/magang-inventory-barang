@@ -30,7 +30,7 @@ router.get("/:id", getRequestById);
 router.put("/:id/approve", checkRole("admin"), approveRequest);
 router.put("/:id/confirm-arrival", checkRole("admin"), confirmArrival);
 router.put("/:id/reject", checkRole("admin"), rejectRequest);
-router.put("/:id/return", returnRequest);
-router.put("/:id/cancel", cancelRequest);
+router.put("/:id/return", checkRole("admin"), returnRequest);
+router.put("/:id/cancel", checkRole("admin"), cancelRequest);
 
 export default router;

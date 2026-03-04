@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { IconMinus, IconPlus, IconShoppingCartPlus } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTransferCart } from "@/features/transfer/hooks/useTransferCart";
 import { useAuthUser, Role } from "@/hooks/useAuthUser";

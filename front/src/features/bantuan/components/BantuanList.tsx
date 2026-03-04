@@ -22,7 +22,6 @@ import { IconMessage2 } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { useContactAdmin } from "../hooks/useContactAdmin";
-import { ca } from "date-fns/locale";
 
 const faqData = [
   {

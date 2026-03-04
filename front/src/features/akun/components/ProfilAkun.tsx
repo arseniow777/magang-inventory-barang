@@ -9,7 +9,7 @@ import { useUpdateAkun } from "../hooks/useUpdateAkun";
 import { updateAccountSchema } from "../schemas/akun.schema";
 
 export function ProfilAkun() {
-  const { data, isLoading, error } = useAkun();
+  const { data } = useAkun();
   const { mutate: updateAkun, isPending } = useUpdateAkun();
 
   const [form, setForm] = useState({
