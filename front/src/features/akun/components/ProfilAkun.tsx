@@ -83,7 +83,7 @@ export function ProfilAkun() {
     <div className="flex flex-col gap-6">
       <div className="w-full h-40 sm:h-52 rounded-lg overflow-hidden">
         <img
-          src="../../../../public/images/banner/bannerInventel.png"
+          src="/images/banner/bannerInventel.png"
           className="w-full h-full object-cover object-[75%]"
         />
       </div>
