@@ -66,12 +66,14 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <a href={item.url}>
-                <SidebarMenuButton className="px-5" tooltip={item.title}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-              </a>
+              <SidebarMenuButton
+                className="px-5"
+                tooltip={item.title}
+                onClick={() => navigate(item.url)}
+              >
+                {item.icon}
+                <span>{item.title}</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
           {!isGuest && isAdmin && (
