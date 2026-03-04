@@ -17,8 +17,6 @@ interface ItemPageShellProps {
 
 export default function ItemPageShell({
   onBack,
-  name,
-  subtitle,
   isError,
   errorMessage = "Gagal memuat data. Silakan coba lagi.",
   left,

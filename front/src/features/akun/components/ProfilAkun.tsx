@@ -2,18 +2,14 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { toast } from "sonner";
 import { useAkun } from "../hooks/useAkun";
 import { useUpdateAkun } from "../hooks/useUpdateAkun";
 import { updateAccountSchema } from "../schemas/akun.schema";
 
 export function ProfilAkun() {
-  const { data, isLoading, error } = useAkun();
+  const { data } = useAkun();
   const { mutate: updateAkun, isPending } = useUpdateAkun();
 
   const [form, setForm] = useState({
@@ -22,7 +18,7 @@ export function ProfilAkun() {
     phone_local: "",
   });
 
- useEffect(() => {
+  useEffect(() => {
     if (data) {
       let raw = data.phone_number ?? "";
 
@@ -77,14 +73,19 @@ export function ProfilAkun() {
     updateAkun(data, {
       onSuccess: () => toast.success("Profil berhasil disimpan"),
       onError: (err) =>
-        toast.error(err instanceof Error ? err.message : "Gagal menyimpan profil"),
+        toast.error(
+          err instanceof Error ? err.message : "Gagal menyimpan profil",
+        ),
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
       <div className="w-full h-40 sm:h-52 rounded-lg overflow-hidden">
-        <img src="../../../../public/bannerProfil.png" className="w-full h-full object-cover object-[75%]" />
+        <img
+          src="../../../../public/bannerProfil.png"
+          className="w-full h-full object-cover object-[75%]"
+        />
       </div>
 
       <FieldGroup>

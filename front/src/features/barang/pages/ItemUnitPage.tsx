@@ -208,7 +208,7 @@ export default function ItemUnitPage() {
       </div>
 
       {/* ── Bottom: Audit log table ── */}
-      <div className="bg-accent rounded-lg p-4">
+      <div className="bg-accent dark:bg-accent/40 rounded-lg p-4">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <IconHistory className="h-4 w-4 text-muted-foreground" />

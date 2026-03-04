@@ -3,8 +3,17 @@ import type { ReportData } from "../types/permintaan.types";
 
 export const reportsAPI = {
   // Get all reports
-  getReports: (params?: { report_type?: string; is_approved?: boolean }) =>
-    apiClient.get<ReportData[]>("/reports", params),
+  getReports: (params?: { report_type?: string; is_approved?: boolean }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.report_type)
+      searchParams.set("report_type", params.report_type);
+    if (params?.is_approved !== undefined)
+      searchParams.set("is_approved", String(params.is_approved));
+    const query = searchParams.toString();
+    return apiClient.get<ReportData[]>(
+      query ? `/reports?${query}` : "/reports",
+    );
+  },
 
   // Get single report
   getReport: (id: number) => apiClient.get<ReportData>(`/reports/${id}`),

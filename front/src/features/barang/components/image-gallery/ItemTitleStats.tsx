@@ -6,13 +6,7 @@ interface ItemTitleStatsProps {
   goodUnits?: number;
 }
 
-export function ItemTitleStats({
-  itemName,
-  modelCode,
-  totalUnits,
-  availableUnits,
-  goodUnits,
-}: ItemTitleStatsProps) {
+export function ItemTitleStats({ itemName, modelCode }: ItemTitleStatsProps) {
   return (
     <>
       <div className="flex w-full items-center mb-5">
