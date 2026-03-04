@@ -12,8 +12,6 @@ const router = Router();
 
 router.post("/forgot-password", forgotPassword);
 
-router.post("/forgot-password", forgotPassword);
-
 // Brute-force protection: max 10 login attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
