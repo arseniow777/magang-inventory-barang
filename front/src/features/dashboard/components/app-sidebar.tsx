@@ -99,6 +99,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     url: "/dashboard/transfer",
                     icon: <IconArrowsTransferDown />,
                   },
+                  {
+                    name: "Berita Acara",
+                    url: "/dashboard/berita",
+                    icon: <IconFileDescription />,
+                  },
                 ]),
           ],
       secondary: isGuest

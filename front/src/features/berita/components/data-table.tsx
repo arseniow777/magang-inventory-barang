@@ -273,28 +273,27 @@ export function DataTable({
   });
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      <div className="flex flex-row items-center gap-2 flex-wrap">
-        <div className="flex-1 min-w-0 ">
-          <TabsLine
-            tabs={[
-              { value: "all", label: "Semua" },
-              { value: "borrow", label: "Peminjaman" },
-              { value: "transfer", label: "Transfer" },
-              { value: "sell", label: "Penjualan" },
-              { value: "demolish", label: "Pemusnahan" },
-            ]}
-            activeTab={activeType}
-            onTabChange={setActiveType}
-          />
-        </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
+    <div>
+      <div className="mb-2 w-full flex justify-between gap-4">
+        <TabsLine
+          tabs={[
+            { value: "all", label: "Semua" },
+            { value: "borrow", label: "Peminjaman" },
+            { value: "transfer", label: "Transfer" },
+            { value: "sell", label: "Penjualan" },
+            { value: "demolish", label: "Pemusnahan" },
+          ]}
+          activeTab={activeType}
+          onTabChange={setActiveType}
+        />
+
+        <div className="flex gap-2">
           <ButtonGroup>
             <Input
               placeholder="Cari nomor / permintaan / PIC..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-28 md:w-72"
+              className="w-full md:w-64"
             />
             <Button variant="outline" aria-label="Search">
               <IconSearch />
@@ -343,8 +342,8 @@ export function DataTable({
           description="Belum ada berita acara yang tersedia"
         />
       ) : (
-        <div className="relative flex flex-col gap-4 overflow-auto">
-          <div className="overflow-hidden rounded-lg border">
+        <div className="relative flex flex-col gap-4 min-w-0">
+          <div className="overflow-x-auto rounded-lg border">
             <Table>
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (

@@ -355,7 +355,7 @@ export function DataTable({ data: initialData }: { data: UserRow[] }) {
             placeholder="Cari nama / username / ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
+            className="w-32 md:w-72"
           />
           <Button variant="outline" aria-label="Search">
             <IconSearch />
@@ -419,7 +419,7 @@ export function DataTable({ data: initialData }: { data: UserRow[] }) {
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
                 <span className="hidden lg:inline">Kolom</span>
-                <IconChevronDown />
+                <IconChevronDown className="hidden lg:inline" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

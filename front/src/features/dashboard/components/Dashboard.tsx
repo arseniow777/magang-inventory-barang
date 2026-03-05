@@ -224,14 +224,7 @@ export default function Dashboard() {
                 </AdminRoute>
               }
             />
-            <Route
-              path="/berita"
-              element={
-                <AdminRoute>
-                  <BeritaPage />
-                </AdminRoute>
-              }
-            />
+            <Route path="/berita" element={<BeritaPage />} />
             <Route
               path="/lokasi"
               element={

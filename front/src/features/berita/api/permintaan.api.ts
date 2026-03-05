@@ -15,6 +15,8 @@ export const reportsAPI = {
     );
   },
 
+  getMyReports: () => apiClient.get<ReportData[]>("/reports/my-reports"),
+
   // Get single report
   getReport: (id: number) => apiClient.get<ReportData>(`/reports/${id}`),
 

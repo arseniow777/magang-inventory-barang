@@ -1,16 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { reportsAPI } from "../api/permintaan.api";
 
-// Get all reports
-export function useReportsData(params?: {
-  report_type?: string;
-  is_approved?: boolean;
-}) {
+export function useReportsData(
+  params?: { report_type?: string; is_approved?: boolean },
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: ["reports", params],
     queryFn: () => reportsAPI.getReports(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+export function useMyReportsData(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["reports", "my-reports"],
+    queryFn: () => reportsAPI.getMyReports(),
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 

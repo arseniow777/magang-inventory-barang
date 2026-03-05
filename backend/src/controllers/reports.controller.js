@@ -276,3 +276,30 @@ export const downloadReport = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getMyReports = async (req, res, next) => {
+  try {
+    const reports = await prisma.officialReports.findMany({
+      where: {
+        request: {
+          pic_id: req.user.id,
+        },
+      },
+      include: {
+        request: {
+          include: {
+            pic: true,
+            destination_location: true,
+          },
+        },
+        issued_by: true,
+        approved_by: true,
+      },
+      orderBy: { issued_date: "desc" },
+    });
+
+    return sendSuccess(res, "Data reports berhasil diambil", reports);
+  } catch (err) {
+    next(err);
+  }
+};

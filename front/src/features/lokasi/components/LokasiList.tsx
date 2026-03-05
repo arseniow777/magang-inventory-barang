@@ -202,7 +202,7 @@ export default function LokasiList() {
           </Button>
         </ButtonGroup>
         <Button onClick={() => navigate("/dashboard/lokasi/tambah")}>
-          <IconPlus className="h-4 w-4 lg:mr-2" />
+          <IconPlus className="h-4 w-4" />
           <span className="hidden lg:inline">Tambah Lokasi</span>
         </Button>
       </div>

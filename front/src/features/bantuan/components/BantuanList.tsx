@@ -164,15 +164,13 @@ const faqData = [
 
 const tabs = [
   { value: "all", label: "Semua" },
-  { value: "umum", label: "Pertanyaan Umum" },
-  { value: "akses", label: "Akses & Keamanan" },
-  { value: "barang", label: "Manajemen Barang" },
+  { value: "umum", label: "Umum" },
+  { value: "akses", label: "Akses" },
+  { value: "barang", label: "Barang" },
   { value: "permintaan", label: "Permintaan" },
-  { value: "lokasi", label: "Lokasi & Inventaris" },
-  { value: "telegram", label: "Telegram & Notifikasi" },
+  { value: "lokasi", label: "Lokasi" },
+  { value: "telegram", label: "Telegram" },
 ];
-
-const TELEGRAM_BOT_USERNAME = "invetel_bot";
 
 export default function BantuanList() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -226,28 +224,28 @@ export default function BantuanList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hubungi Admin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tulis pesan Anda dan admin akan segera merespons melalui sistem
+              notifikasi.
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="m-4 p-4 rounded-full bg-stone-100">
-              <IconMessage2 size={40} className="text-stone-500" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Buka bot Telegram <strong>@{TELEGRAM_BOT_USERNAME}</strong>, lalu
-              pilih menu <strong>Hubungi Admin</strong> dan ikuti instruksinya.
-            </p>
-            <Button
-              className="w-full"
-              onClick={() =>
-                window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}`, "_blank")
-              }
-            >
-              Buka Telegram Bot
-            </Button>
-          </div>
+          <Textarea
+            placeholder="Tulis pesan..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+          />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpen(false)}>
-              Tutup
+            <AlertDialogCancel onClick={() => setMessage("")}>
+              Batal
             </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSend}
+              disabled={isPending || !message.trim()}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isPending ? "Mengirim..." : "Kirim"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
