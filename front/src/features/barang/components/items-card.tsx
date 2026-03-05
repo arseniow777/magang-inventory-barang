@@ -20,7 +20,7 @@ export function ItemsCard({ item }: ItemsCardProps) {
       onKeyDown={(e) =>
         e.key === "Enter" && navigate(`/dashboard/barang/${item.id}`)
       }
-      className="relative w-full aspect-video md:aspect-square rounded-sm overflow-hidden bg-neutral-200 dark:bg-neutral-800 cursor-pointer transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="relative w-full aspect-square rounded-sm overflow-hidden bg-neutral-200 dark:bg-neutral-800 cursor-pointer transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       {/* Image fills the entire card */}
       {imageUrl && (

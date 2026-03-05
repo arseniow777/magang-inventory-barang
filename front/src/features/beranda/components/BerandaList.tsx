@@ -12,11 +12,11 @@ export default function BerandaList() {
         <PermintaanTerbaru />
         <TombolCepat />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:flex-1 md:min-h-0">
-        <div className="md:col-span-2 md:min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:flex-1 md:min-h-0 md:overflow-hidden">
+        <div className="md:col-span-2 md:h-full md:min-h-0">
           <AktivitasTerbaru />
         </div>
-        <div className="bg-muted/50 rounded-xl p-4 md:overflow-y-auto">
+        <div className="bg-muted/50 rounded-xl p-4 md:h-full md:min-h-0 md:overflow-hidden">
           <KondisiBarang />
         </div>
       </div>

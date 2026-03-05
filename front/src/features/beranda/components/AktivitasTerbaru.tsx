@@ -31,7 +31,7 @@ const formatDate = (dateString: string) =>
   });
 
 export default function AktivitasTerbaru() {
-  const { data, isLoading } = useAuditData({ limit: 5 });
+  const { data, isLoading } = useAuditData({ limit: 10 });
   const logs = data?.logs ?? [];
 
   return (

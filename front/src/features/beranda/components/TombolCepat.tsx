@@ -44,7 +44,7 @@ export default function TombolCepat() {
             key={label}
             variant="quickAction"
             size="lg"
-            className="w-11/12 h-auto min-h-10 md:min-h-12 xl:h-16 justify-start py-2 md:py-3 overflow-hidden"
+            className="w-11/12 h-auto min-h-16 justify-start py-2 md:py-3 overflow-hidden"
             onClick={() => (to ? navigate(to) : logout())}
           >
             <Icon className="size-4 shrink-0 text-red-500" />

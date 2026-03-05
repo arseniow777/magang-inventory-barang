@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Pie, PieChart, Label } from "recharts";
+import { Pie, PieChart, Label, ResponsiveContainer } from "recharts";
 // import { type PieSectorDataItem } from "recharts/types/polar/Pie";
 import {
   ChartContainer,
@@ -76,58 +76,79 @@ export default function KondisiBarang() {
           <EmptyState description="Tidak ada barang" />
         </div>
       ) : (
-        <div className="flex-1 overflow-auto min-h-0">
+        <div className="flex-1 min-h-0 flex">
           <ChartContainer
             config={chartConfig}
-            className="mx-auto aspect-square max-h-75"
+            className="mx-auto w-full h-full"
           >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={chartData}
-                dataKey="jumlah"
-                nameKey="kondisiBarang"
-                innerRadius={60}
-                outerRadius={100}
-              >
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className="fill-foreground text-3xl font-bold"
-                          >
-                            {total.toLocaleString()}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-muted-foreground"
-                          >
-                            Total Unit
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
                 />
-              </Pie>
-              <ChartLegend
-                content={<ChartLegendContent nameKey="kondisiBarang" />}
-                className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
-              />
-            </PieChart>
+                <Pie
+                  data={chartData}
+                  dataKey="jumlah"
+                  nameKey="kondisiBarang"
+                  innerRadius="60%"
+                  outerRadius="95%"
+                >
+                  <Label
+                    content={({ viewBox }) => {
+                      if (
+                        viewBox &&
+                        "cx" in viewBox &&
+                        "cy" in viewBox &&
+                        "innerRadius" in viewBox &&
+                        viewBox.innerRadius
+                      ) {
+                        const cx = viewBox.cx ?? 0;
+                        const cy = viewBox.cy ?? 0;
+                        const innerRadius = viewBox.innerRadius;
+
+                        const fontSize = innerRadius * 0.5;
+                        const subFontSize = innerRadius * 0.2;
+
+                        return (
+                          <text
+                            x={cx}
+                            y={cy}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            <tspan
+                              x={cx}
+                              y={cy}
+                              fontSize={fontSize}
+                              fontWeight="bold"
+                              fill="currentColor"
+                            >
+                              {total.toLocaleString()}
+                            </tspan>
+
+                            <tspan
+                              x={cx}
+                              y={cy + subFontSize + 8}
+                              fontSize={subFontSize}
+                              fill="var(--muted-foreground)"
+                            >
+                              Total Unit
+                            </tspan>
+                          </text>
+                        );
+                      }
+
+                      return null;
+                    }}
+                  />
+                </Pie>
+                <ChartLegend
+                  content={<ChartLegendContent nameKey="kondisiBarang" />}
+                  className="flex-wrap *:basis-1/3 *:justify-center pb-2"
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </ChartContainer>
         </div>
       )}
