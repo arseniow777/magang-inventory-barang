@@ -172,6 +172,8 @@ const tabs = [
   { value: "telegram", label: "Telegram & Notifikasi" },
 ];
 
+const TELEGRAM_BOT_USERNAME = "invetel_bot";
+
 export default function BantuanList() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [open, setOpen] = useState(false);
@@ -224,28 +226,28 @@ export default function BantuanList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hubungi Admin</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tulis pesan Anda dan admin akan segera merespons melalui sistem
-              notifikasi.
-            </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea
-            placeholder="Tulis pesan..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setMessage("")}>
-              Batal
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleSend}
-              disabled={isPending || !message.trim()}
-              className="bg-red-600 hover:bg-red-700"
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="m-4 p-4 rounded-full bg-stone-100">
+              <IconMessage2 size={40} className="text-stone-500" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Buka bot Telegram <strong>@{TELEGRAM_BOT_USERNAME}</strong>, lalu
+              pilih menu <strong>Hubungi Admin</strong> dan ikuti instruksinya.
+            </p>
+            <Button
+              className="w-full"
+              onClick={() =>
+                window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}`, "_blank")
+              }
             >
-              {isPending ? "Mengirim..." : "Kirim"}
-            </AlertDialogAction>
+              Buka Telegram Bot
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setOpen(false)}>
+              Tutup
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
