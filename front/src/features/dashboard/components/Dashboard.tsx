@@ -156,7 +156,7 @@ export default function Dashboard() {
         </header>
 
         {/* Dynamic Content based on Route */}
-        <div className="flex flex-1 flex-col p-4 md:p-7">
+        <div className="flex flex-1 flex-col p-4 md:p-7 ">
           <Routes>
             {/* Root — admin ke Beranda, PIC ke Barang */}
             <Route

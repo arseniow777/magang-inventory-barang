@@ -274,25 +274,27 @@ export function DataTable({
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <TabsLine
-          tabs={[
-            { value: "all", label: "Semua" },
-            { value: "borrow", label: "Peminjaman" },
-            { value: "transfer", label: "Transfer" },
-            { value: "sell", label: "Penjualan" },
-            { value: "demolish", label: "Pemusnahan" },
-          ]}
-          activeTab={activeType}
-          onTabChange={setActiveType}
-        />
-        <div className="flex items-center gap-2">
+      <div className="flex flex-row items-center gap-2 flex-wrap">
+        <div className="flex-1 min-w-0 ">
+          <TabsLine
+            tabs={[
+              { value: "all", label: "Semua" },
+              { value: "borrow", label: "Peminjaman" },
+              { value: "transfer", label: "Transfer" },
+              { value: "sell", label: "Penjualan" },
+              { value: "demolish", label: "Pemusnahan" },
+            ]}
+            activeTab={activeType}
+            onTabChange={setActiveType}
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
           <ButtonGroup>
             <Input
               placeholder="Cari nomor / permintaan / PIC..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-72"
+              className="w-28 md:w-72"
             />
             <Button variant="outline" aria-label="Search">
               <IconSearch />
@@ -300,10 +302,14 @@ export function DataTable({
           </ButtonGroup>
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="lg:rounded-sm rounded-full lg:size-auto size-8 p-0 lg:p-2"
+              >
                 <IconLayoutColumns />
                 <span className="hidden lg:inline">Kolom</span>
-                <IconChevronDown />
+                <IconChevronDown className="hidden lg:inline" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

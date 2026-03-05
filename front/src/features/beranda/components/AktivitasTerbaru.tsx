@@ -35,7 +35,7 @@ export default function AktivitasTerbaru() {
   const logs = data?.logs ?? [];
 
   return (
-    <div className="bg-muted/50 rounded-xl p-4 h-full flex flex-col overflow-hidden">
+    <div className="bg-muted/50 rounded-xl p-4 flex flex-col h-full w-full overflow-hidden">
       <div className="mb-4 flex items-center justify-between shrink-0">
         <h2 className="text-base font-semibold">Aktivitas Terbaru</h2>
       </div>
@@ -44,7 +44,7 @@ export default function AktivitasTerbaru() {
           Memuat data...
         </div>
       ) : (
-        <div className="flex-1 overflow-auto min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0 w-full">
           <Table>
             <TableHeader>
               <TableRow>

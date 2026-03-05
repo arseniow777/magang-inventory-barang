@@ -189,7 +189,7 @@ export default function LokasiList() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="flex items-center justify-end gap-4">
+      <div className="flex items-center justify-between md:justify-end gap-4">
         <ButtonGroup>
           <Input
             placeholder="Cari nama / kode / alamat..."
@@ -202,8 +202,8 @@ export default function LokasiList() {
           </Button>
         </ButtonGroup>
         <Button onClick={() => navigate("/dashboard/lokasi/tambah")}>
-          <IconPlus className="h-4 w-4 mr-2" />
-          Tambah Lokasi
+          <IconPlus className="h-4 w-4 lg:mr-2" />
+          <span className="hidden lg:inline">Tambah Lokasi</span>
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

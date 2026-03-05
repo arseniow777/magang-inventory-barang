@@ -62,7 +62,7 @@ export default function KondisiBarang() {
   // );
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
         <h2 className="text-base font-semibold">Kondisi Barang</h2>
       </div>
@@ -76,10 +76,10 @@ export default function KondisiBarang() {
           <EmptyState description="Tidak ada barang" />
         </div>
       ) : (
-        <div className="flex-1 min-h-0 flex">
+        <div className="flex-1 min-h-0 flex w-full">
           <ChartContainer
             config={chartConfig}
-            className="mx-auto w-full h-full"
+            className="mx-auto w-full h-full flex items-center justify-center"
           >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
