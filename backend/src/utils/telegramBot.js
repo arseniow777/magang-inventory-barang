@@ -12,6 +12,7 @@ const API_URL = process.env.API_URL || "http://localhost:5000";
 const FRONTEND_URL = process.env.WEB_URL || "http://localhost:5173";
 
 const awaitingPassword = new Map(); // telegram_id -> true
+const awaitingReply = new Map(); // admin_telegram_id -> target_user_id
 
 const getMenu = () => ({
   inline_keyboard: [
@@ -409,6 +410,25 @@ if (bot) {
         });
       }
 
+      if (data.startsWith("reply_to:")) {
+        const target_user_id = parseInt(data.split(":")[1]);
+
+        if (user.role !== "admin") {
+          await bot.sendMessage(chatId, "Anda tidak memiliki akses.");
+        } else {
+          const targetUser = await prisma.users.findUnique({
+            where: { id: target_user_id },
+          });
+
+          awaitingReply.set(telegram_id, target_user_id);
+          await bot.sendMessage(
+            chatId,
+            `Ketik balasan untuk *${targetUser?.name || "user"}*:`,
+            { parse_mode: "Markdown" },
+          );
+        }
+      }
+
       await bot.answerCallbackQuery(query.id);
     } catch (error) {
       console.error("Callback query error:", error);
@@ -433,13 +453,36 @@ if (bot) {
 
       await Promise.all(
         admins.map((admin) =>
-          prisma.notifications.create({
-            data: {
-              user_id: admin.id,
-              message: `Pesan dari ${user.name} (${user.username}): ${message}`,
-              type: "system",
-            },
-          }),
+          Promise.all([
+            prisma.notifications.create({
+              data: {
+                user_id: admin.id,
+                message: `Pesan dari ${user.name} (${user.username}): ${message}`,
+                type: "system",
+              },
+            }),
+            ...(admin.telegram_id
+              ? [
+                  bot.sendMessage(
+                    admin.telegram_id,
+                    `📩 *Pesan dari ${user.name} (${user.username}):*\n\n${message}`,
+                    {
+                      parse_mode: "Markdown",
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
+                            {
+                              text: "Balas",
+                              callback_data: `reply_to:${user.id}`,
+                            },
+                          ],
+                        ],
+                      },
+                    },
+                  ),
+                ]
+              : []),
+          ]),
         ),
       );
 
@@ -449,6 +492,44 @@ if (bot) {
       await bot.sendMessage(chatId, "Terjadi kesalahan, coba lagi nanti.");
     }
   });
+
+  // bot.onText(/\/reply (\d+) (.+)/, async (msg, match) => {
+  //   const telegram_id = msg.from.id.toString();
+  //   const target_user_id = parseInt(match[1]);
+  //   const message = match[2];
+
+  //   const admin = await getUserByTelegramId(telegram_id);
+  //   if (!admin || admin.role !== "admin") {
+  //     await bot.sendMessage(
+  //       msg.chat.id,
+  //       "Anda tidak memiliki akses untuk perintah ini.",
+  //     );
+  //     return;
+  //   }
+
+  //   const targetUser = await prisma.users.findUnique({
+  //     where: { id: target_user_id },
+  //   });
+
+  //   if (!targetUser || !targetUser.telegram_id) {
+  //     await bot.sendMessage(
+  //       msg.chat.id,
+  //       "User tidak ditemukan atau belum connect Telegram.",
+  //     );
+  //     return;
+  //   }
+
+  //   await bot.sendMessage(
+  //     targetUser.telegram_id,
+  //     `📩 *Pesan dari Admin:*\n\n${message}`,
+  //     { parse_mode: "Markdown" },
+  //   );
+
+  //   await bot.sendMessage(
+  //     msg.chat.id,
+  //     `✅ Pesan berhasil dikirim ke ${targetUser.name}.`,
+  //   );
+  // });
 
   bot.on("message", async (msg) => {
     if (!msg.text) return;
@@ -521,6 +602,35 @@ if (bot) {
       return;
     }
 
+    if (awaitingReply.has(telegram_id)) {
+      const target_user_id = awaitingReply.get(telegram_id);
+      awaitingReply.delete(telegram_id);
+
+      const admin = await getUserByTelegramId(telegram_id);
+      if (!admin || admin.role !== "admin") return;
+
+      const targetUser = await prisma.users.findUnique({
+        where: { id: target_user_id },
+      });
+
+      if (!targetUser?.telegram_id) {
+        await bot.sendMessage(
+          chatId,
+          "User tidak ditemukan atau belum connect Telegram.",
+        );
+        return;
+      }
+
+      await bot.sendMessage(
+        targetUser.telegram_id,
+        `*Pesan dari Admin:*\n\n${text}`,
+        { parse_mode: "Markdown" },
+      );
+
+      await bot.sendMessage(chatId, `Pesan terkirim ke ${targetUser.name}.`);
+      return;
+    }
+
     const user = await getUserByTelegramId(telegram_id);
     if (!user) {
       await sendNotConnected(chatId);
@@ -541,7 +651,7 @@ if (bot) {
       if (aiResponse === null) {
         await bot.sendMessage(
           chatId,
-          `⚠️ Fitur pencarian AI sedang tidak aktif.\n\nGunakan menu di bawah ini:`,
+          `Fitur pencarian AI sedang tidak aktif.\n\nGunakan menu di bawah ini:`,
           { parse_mode: "Markdown", reply_markup: getMenu() },
         );
         return;

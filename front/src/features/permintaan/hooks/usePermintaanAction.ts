@@ -6,6 +6,7 @@ export function usePermintaanAction() {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["requests"] });
+    queryClient.invalidateQueries({ queryKey: ["reports"] });
   };
 
   const approve = useMutation({
