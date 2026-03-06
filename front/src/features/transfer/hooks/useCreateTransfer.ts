@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query"; // tambah useQueryClient
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { transferAPI } from "../api/transfer.api";
@@ -14,6 +14,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export function useCreateTransfer() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); // tambah ini
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
 
@@ -22,6 +23,7 @@ export function useCreateTransfer() {
       transferAPI.createRequest(items, values),
     onSuccess: (data, variables) => {
       clearCart();
+      queryClient.invalidateQueries({ queryKey: ["requests"] }); // tambah ini
       const label =
         TYPE_LABELS[variables.request_type] ?? variables.request_type;
       toast.success(
