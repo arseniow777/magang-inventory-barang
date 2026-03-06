@@ -225,26 +225,16 @@ export default function BantuanList() {
           <AlertDialogHeader>
             <AlertDialogTitle>Hubungi Admin</AlertDialogTitle>
             <AlertDialogDescription>
-              Tulis pesan Anda dan admin akan segera merespons melalui sistem
-              notifikasi.
+              Silahkan hubungi admin melalui Telegram dengan memilih menu{" "}
+              <span className="font-semibold text-foreground">
+                Hubungi Admin
+              </span>{" "}
+              pada bot dan ikuti alurnya.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea
-            placeholder="Tulis pesan..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-          />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setMessage("")}>
-              Batal
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleSend}
-              disabled={isPending || !message.trim()}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isPending ? "Mengirim..." : "Kirim"}
+            <AlertDialogAction onClick={() => setOpen(false)}>
+              Mengerti
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

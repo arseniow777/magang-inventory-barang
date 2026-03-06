@@ -1,5 +1,4 @@
 "use client";
-
 import { Link, useLocation } from "react-router-dom";
 import {
   SidebarGroup,
@@ -7,6 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 export function NavProjects({
@@ -21,10 +21,9 @@ export function NavProjects({
   }[];
 }) {
   const location = useLocation();
+  const { setOpenMobile } = useSidebar();
 
-  const isActive = (url: string) => {
-    return location.pathname === url;
-  };
+  const isActive = (url: string) => location.pathname === url;
 
   return (
     <SidebarGroup>
@@ -32,7 +31,7 @@ export function NavProjects({
       <SidebarMenu>
         {sections.map((sections) => (
           <SidebarMenuItem key={sections.name}>
-            <Link to={sections.url}>
+            <Link to={sections.url} onClick={() => setOpenMobile(false)}>
               <SidebarMenuButton
                 tooltip={sections.name}
                 className={`w-full px-5 transition-colors ${

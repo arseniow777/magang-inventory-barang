@@ -35,7 +35,7 @@ export function NavSecondary({
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const navigate = useNavigate();
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   // auth
   const { data: authUser } = useAuthUser();
@@ -69,7 +69,10 @@ export function NavSecondary({
               <SidebarMenuButton
                 className="px-5"
                 tooltip={item.title}
-                onClick={() => navigate(item.url)}
+                onClick={() => {
+                  navigate(item.url);
+                  setOpenMobile(false);
+                }}
               >
                 {item.icon}
                 <span>{item.title}</span>
@@ -98,7 +101,10 @@ export function NavSecondary({
                   {addDataMenuItems.map((item) => (
                     <DropdownMenuItem
                       key={item.path}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => {
+                        navigate(item.path);
+                        setOpenMobile(false);
+                      }}
                     >
                       {item.icon}
                       {item.label}

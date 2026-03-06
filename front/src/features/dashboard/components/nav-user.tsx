@@ -35,7 +35,7 @@ export function NavUser({
     avatar: string;
   };
 }) {
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   return (
@@ -84,17 +84,32 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate("/dashboard/users/profil")}>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigate("/dashboard/users/profil");
+                  setOpenMobile(false);
+                }}
+              >
                 <IconUserCircle />
                 Profil akun
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/dashboard/users/notifikasi")}>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigate("/dashboard/users/notifikasi");
+                  setOpenMobile(false);
+                }}
+              >
                 <IconBell />
                 Notifikasi
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => logout()}>
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+                setOpenMobile(false);
+              }}
+            >
               <IconLogout />
               Log out
             </DropdownMenuItem>
