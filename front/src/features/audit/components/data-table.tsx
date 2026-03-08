@@ -148,6 +148,15 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
   },
   {
+    accessorKey: "user_agent",
+    header: "User-agent",
+    cell: ({ row }) => (
+      <div className="text-sm text-muted-foreground max-w-45 truncate">
+        {row.original.user_agent ?? "-"}
+      </div>
+    ),
+  },
+  {
     accessorKey: "description",
     header: "Keterangan",
     cell: ({ row }) => (

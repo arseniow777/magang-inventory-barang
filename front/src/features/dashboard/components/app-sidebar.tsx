@@ -22,6 +22,7 @@ import {
   IconHelp,
   IconKey,
   IconArrowsTransferDown,
+  IconFileIsr,
 } from "@tabler/icons-react";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -92,6 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     url: "/dashboard/pengguna",
                     icon: <IconUsersGroup />,
                   },
+                  {
+                    name: "Audit Log",
+                    url: "/dashboard/audit",
+                    icon: <IconUsersGroup />,
+                  },
                 ]
               : [
                   {
@@ -102,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {
                     name: "Berita Acara",
                     url: "/dashboard/berita",
-                    icon: <IconFileDescription />,
+                    icon: <IconFileIsr />,
                   },
                 ]),
           ],
