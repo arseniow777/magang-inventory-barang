@@ -5,41 +5,226 @@ description: Gantt chart timeline pengerjaan proyek magang inventory barang.
 
 import MermaidDiagram from "@/components/MermaidDiagram.astro";
 
-## Timeline Februari 2026
+## Timeline Februari - Maret 2026
 
 Berikut adalah timeline kegiatan pengerjaan proyek selama periode magang.
 
 <MermaidDiagram diagram={`gantt
-    title Project Timeline - Februari 2025
+    title Project Timeline - Februari & Maret 2026
     dateFormat YYYY-MM-DD
     axisFormat %d %b
     todayMarker off
+    excludes weekends
 
     section System Architecture & Data Foundation
-    Analysis & Diagram flow   :active,  a1, 2025-02-09, 2025-02-13
-    Backend API CRUD          :         a2, 2025-02-10, 2025-02-18
+    Analysis & Diagram Flow               :done,   a1, 2026-02-09, 2026-02-13
+    Backend API CRUD                      :done,   a2, 2026-02-11, 2026-02-18
 
     section User Interface & Experience
-    Frontend UI & UX          :         b1, 2025-02-18, 2025-02-27
+    Frontend UI & UX                      :done,   b1, 2026-02-18, 2026-02-28
+    Lupa Kata Sandi & Bug Fix UI          :done,   b2, 2026-03-02, 2026-03-03
 
     section Smart Features & Documentation
-    Barcode Gen & Scanner     :         c1, 2025-02-19, 2025-02-24
-    PDF Berita Acara          :         c2, 2025-02-23, 2025-02-25
+    Barcode Gen & Scanner                 :done,   c1, 2026-02-19, 2026-02-24
+    PDF Berita Acara                      :done,   c2, 2026-02-23, 2026-02-25
+    Notifikasi & Status Bot Telegram      :done,   c3, 2026-03-02, 2026-03-03
+
+    section Smart Features & AI
+    Fine-tuning AI & FastAPI Service      :done,   e1, 2026-03-05, 2026-03-06
+    Integrasi AI ke Bot Telegram          :done,   e2, 2026-03-06, 2026-03-07
 
     section DevOps & Quality Assurance
-    Final Testing & Fixing Bug :        d1, 2025-02-25, 2025-02-26
-    Deploy & Automation        :        d2, 2025-02-26, 2025-02-28
+    Deploy Production                     :done,   d1, 2026-03-03, 2026-03-04
+    Final Testing & Fixing Bug            :done,   d2, 2026-03-04, 2026-03-06
+    Deploy & Automation                   :done,   d3, 2026-03-06, 2026-03-07
+
+    section Serah Terima Proyek
+    Persiapan & Serah Terima              :active, f1, 2026-03-09, 2026-03-10
 
 `} />
 
-## Ringkasan Kegiatan
+---
 
-| Section             | Kegiatan                   | Mulai  | Selesai | Status  |
-| ------------------- | -------------------------- | ------ | ------- | ------- |
-| System Architecture | Analysis & Diagram flow    | 09 Feb | 10 Feb  | On-Time |
-|                     | Backend API CRUD           | 10 Feb | 18 Feb  | On-Time |
-| UI & Experience     | Frontend UI & UX           | 18 Feb | 27 Feb  | On-Time |
-| Smart Features      | Barcode Gen & Scanner      | 19 Feb | 24 Feb  | On-Time |
-|                     | PDF Berita Acara           | 23 Feb | 25 Feb  | On-Time |
-| DevOps & QA         | Final Testing & Fixing Bug | 25 Feb | 26 Feb  | On-Time |
-|                     | Deploy & Automation        | 26 Feb | 27 Feb  | On-Time |
+## Jurnal Harian
+
+### Minggu 1 — 9 s/d 13 Februari 2026
+
+#### Senin, 09 Februari 2026
+
+| #   | Kegiatan                                                                          |
+| --- | --------------------------------------------------------------------------------- |
+| 1   | Pengenalan lingkungan magang dan pemaparan SOP dari pembimbing                    |
+| 2   | Koordinasi ruang lingkup, tugas, dan detail proyek bersama pembimbing             |
+| 3   | Analisis kebutuhan pengguna, identifikasi fitur, dan penyusunan use case aplikasi |
+| 4   | Perancangan diagram alir sistem dan Gantt Chart perencanaan proyek                |
+| 5   | Merancang dan implementasi awal stack teknologi frontend & backend                |
+
+#### Selasa, 10 Februari 2026
+
+| #   | Kegiatan                                                                  |
+| --- | ------------------------------------------------------------------------- |
+| 1   | Pembuatan repository proyek di GitHub                                     |
+| 2   | Merancang skema database dan menyusun Entity Relationship Diagram (ERD)   |
+| 3   | Testing stack untuk memastikan koneksi frontend dan backend berjalan baik |
+| 4   | Mengarahkan pembuatan low-fidelity prototype aplikasi Inventory Barang    |
+
+#### Rabu, 11 Februari 2026
+
+| #   | Kegiatan                                                                                  |
+| --- | ----------------------------------------------------------------------------------------- |
+| 1   | Mengikuti bazar ramadhan di lingkungan magang                                             |
+| 2   | Realisasi database menggunakan Prisma, pembuatan tabel, relasi, dan seeding user          |
+| 3   | Menyusun struktur kode proyek dengan pendekatan Agile dan pengelolaan repositori GitHub   |
+| 4   | Pembuatan endpoint backend untuk auth, login, dan location                                |
+| 5   | Merancang desain fungsi backend berdasarkan entitas autentikasi, pengguna, dan permintaan |
+
+#### Kamis, 12 Februari 2026
+
+| #   | Kegiatan                                                                          |
+| --- | --------------------------------------------------------------------------------- |
+| 1   | Pembuatan endpoint REST API untuk items, item unit, request barang, dan audit log |
+| 2   | Mengembangkan API backend CRUD items dengan mekanisme soft delete                 |
+| 3   | Merancang high-fidelity prototype UI diawali dengan tampilan beranda              |
+| 4   | Testing seluruh endpoint menggunakan Postman                                      |
+
+#### Jumat, 13 Februari 2026
+
+| #   | Kegiatan                                                                                  |
+| --- | ----------------------------------------------------------------------------------------- |
+| 1   | Mengikuti kegiatan fun walk SEKAR dan presentasi progres minggu pertama kepada pembimbing |
+| 2   | Merancang struktur folder frontend untuk modularitas dan skalabilitas aplikasi            |
+| 3   | Mengimplementasikan komponen frontend dasar dengan integrasi awal API backend             |
+| 4   | Membuat endpoint reset password terintegrasi bot Telegram dan endpoint berita acara PDF   |
+
+---
+
+### Minggu 2 — 18 s/d 20 Februari 2026
+
+#### Selasa, 18 Februari 2026
+
+| #   | Kegiatan                                                                        |
+| --- | ------------------------------------------------------------------------------- |
+| 1   | Pembaruan antarmuka bot Telegram dengan inline keyboard dan reply markup        |
+| 2   | Mengintegrasikan Zod sebagai validasi skema data dan middleware pengecekan role |
+| 3   | Menambahkan validasi integrasi akun Telegram dan link unik sinkronisasi akun    |
+| 4   | Pemetaan daftar API untuk memastikan integrasi backend dan frontend selaras     |
+
+#### Rabu, 19 Februari 2026
+
+| #   | Kegiatan                                                                                    |
+| --- | ------------------------------------------------------------------------------------------- |
+| 1   | Inisiasi pengembangan frontend, penyusunan struktur komponen, halaman Login dan Sidebar     |
+| 2   | Revisi fungsionalitas menu Berita Acara pada bot Telegram dengan mekanisme unduhan langsung |
+
+#### Kamis, 20 Februari 2026
+
+| #   | Kegiatan                                                                              |
+| --- | ------------------------------------------------------------------------------------- |
+| 1   | Implementasi integrasi autentikasi frontend, fetch API login dan logout               |
+| 2   | Pengembangan halaman Notifikasi terintegrasi dengan endpoint backend secara real-time |
+| 3   | Sinkronisasi frontend dan backend melalui merge ke branch main                        |
+
+---
+
+### Minggu 3 — 23 s/d 27 Februari 2026
+
+#### Senin, 23 Februari 2026
+
+| #   | Kegiatan                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------- |
+| 1   | Membuat halaman Profil dengan pengisian otomatis data dari database (fetch PUT)                   |
+| 2   | Mengintegrasikan fetch API seluruh tabel di setiap tab fitur agar data ditampilkan dinamis        |
+| 3   | Menambahkan fitur search dan filter berdasarkan status pada tabel daftar permintaan               |
+| 4   | Merge branch untuk sinkronisasi halaman Barang, Permintaan, Reset Password, Lokasi, dan Audit Log |
+
+#### Selasa, 24 Februari 2026
+
+| #   | Kegiatan                                                                                  |
+| --- | ----------------------------------------------------------------------------------------- |
+| 1   | Membuat halaman Beranda dengan tombol cepat, ringkasan data, dan Pie Chart kondisi barang |
+| 2   | Mengubah tampilan permintaan dari tabel menjadi card dengan aksi terima dan tolak         |
+| 3   | Penyesuaian tampilan dashboard agar lebih responsif di berbagai ukuran layar              |
+
+#### Rabu, 25 Februari 2026
+
+| #   | Kegiatan                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------ |
+| 1   | Membuat halaman Tambah Pengguna dan penyelesaian alur CRUD Pengguna (tambah, edit, hapus)        |
+| 2   | Mengembangkan halaman detail barang dan unit dengan fitur edit, galeri gambar, dan integrasi API |
+| 3   | Menambahkan filterisasi tabel pengguna berdasarkan role dan status                               |
+| 4   | Merge branch untuk sinkronisasi halaman item detail dan unit detail                              |
+
+#### Kamis, 26 Februari 2026
+
+| #   | Kegiatan                                                                                |
+| --- | --------------------------------------------------------------------------------------- |
+| 1   | Menambahkan fitur pencarian pada halaman Lokasi dan membuat halaman Tambah Lokasi       |
+| 2   | Mengembangkan fitur reset password dengan mekanisme persetujuan admin                   |
+| 3   | Mengimplementasikan fitur transfer permintaan dengan Zustand dan validasi Zod           |
+| 4   | Menyesuaikan tampilan permintaan berdasarkan role dan meningkatkan penanganan error API |
+
+#### Jumat, 27 Februari 2026
+
+| #   | Kegiatan                                                                             |
+| --- | ------------------------------------------------------------------------------------ |
+| 1   | Menambahkan endpoint log history untuk pelacakan mutasi barang                       |
+| 2   | Refactor halaman detail barang & unit, routing dashboard, dan pembersihan kode       |
+| 3   | Menambahkan halaman Bantuan, fitur search Berita Acara, dan menu disconnect Telegram |
+| 4   | Memperbaiki bug edit data barang dan responsivitas halaman Notifikasi                |
+
+---
+
+### Minggu 4 — 2 s/d 9 Maret 2026
+
+#### Senin, 2 Maret 2026
+
+| #   | Kegiatan                                                                                    |
+| --- | ------------------------------------------------------------------------------------------- |
+| 1   | Memperbaiki bug sinkronisasi dropdown lokasi (nama Gedung dan PIC) di halaman tambah barang |
+| 2   | Membuat halaman Lupa Kata Sandi dengan dua metode verifikasi (manual dan bot Telegram)      |
+| 3   | Mengembangkan fitur riwayat lokasi unit dan menambahkan status in_transit dan cancelled     |
+| 4   | Meningkatkan proses persetujuan, pengembalian permintaan, dan notifikasi bot Telegram       |
+| 5   | Merge branch untuk integrasi halaman permintaan dan status terbaru                          |
+
+#### Selasa, 3 Maret 2026
+
+| #   | Kegiatan                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------- |
+| 1   | Setup infrastruktur produksi: Neon PostgreSQL, Cloudinary, sinkronisasi CORS dan env variables     |
+| 2   | Mengarahkan tim dalam koordinasi deployment backend dan frontend ke server production              |
+| 3   | Deploy multi-platform: Railway (backend), Vercel (frontend), Neon (database), Cloudinary (storage) |
+
+#### Rabu, 4 Maret 2026
+
+| #   | Kegiatan                                                                             |
+| --- | ------------------------------------------------------------------------------------ |
+| 1   | Memperbaiki konfigurasi routing duplikasi route forgot-password                      |
+| 2   | Refaktor navigasi halaman Bantuan menggunakan useNavigate                            |
+| 3   | Integrasi dan merge kode bot Telegram untuk sinkronisasi fitur AI                    |
+| 4   | Mengembangkan fitur pencarian barang, ringkasan stok, dan riwayat perpindahan lokasi |
+
+#### Kamis, 5 Maret 2026 _(Smart Features & AI)_
+
+| #   | Kegiatan                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------ |
+| 1   | Optimasi responsivitas UI halaman Beranda, Berita Acara, dan Lokasi                              |
+| 2   | Mempelajari konsep fine-tuning dan menyusun dataset 300 sampel JSONL untuk FunctionGemma 270M    |
+| 3   | Fine-tuning FunctionGemma 270M dengan QLoRA (mean_token_accuracy 88,45%), publish ke HuggingFace |
+| 4   | Mengembangkan AI service FastAPI endpoint /predict sebagai penghubung bot Telegram               |
+| 5   | Perbaikan bug PDF Berita Acara di bot Telegram, logika Contact Admin, dan akses role PIC         |
+
+#### Jumat, 6 Maret 2026 _(Smart Features & AI)_
+
+| #   | Kegiatan                                                                                            |
+| --- | --------------------------------------------------------------------------------------------------- |
+| 1   | Containerization Docker dan deployment AI service ke HuggingFace Spaces                             |
+| 2   | Integrasi AI service dengan bot Telegram via Node.js/Express, modularisasi inventoryQueryHandler.js |
+| 3   | Perbaikan sidebar mobile, penambahan .env.example, dan pengujian production pasca-deployment        |
+| 4   | Presentasi finalisasi project kepada pembimbing magang                                              |
+
+#### Senin, 9 Maret 2026 _(Serah Terima Proyek)_
+
+| #   | Kegiatan                                                                                  |
+| --- | ----------------------------------------------------------------------------------------- |
+| 1   | Melaksanakan persiapan serah terima proyek kepada mentor                                  |
+| 2   | Serah terima proyek akhir disertai pemaparan dan penjelasan dokumentasi secara menyeluruh |
