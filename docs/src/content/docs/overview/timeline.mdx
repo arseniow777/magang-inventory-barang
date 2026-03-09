@@ -1,0 +1,42 @@
+---
+title: Timeline Kegiatan
+description: Gantt chart timeline pengerjaan proyek magang inventory barang.
+---
+
+import MermaidDiagram from "@/components/MermaidDiagram.astro";
+
+## Timeline Februari 2026
+
+Berikut adalah timeline kegiatan pengerjaan proyek selama periode magang.
+
+<MermaidDiagram diagram={`gantt
+    title Project Timeline - Februari
+    dateFormat  MM-DD
+    axisFormat  %d
+
+    section System Architecture & Data Foundation
+    Analysis & Diagram flow (On Going)  :active, a1, 02-09, 02-10
+    Backend API CRUD (Pending)          :a2, 02-10, 02-18
+
+    section User Interface & Experience
+    Frontend UI & UX (Pending)          :b1, 02-18, 02-27
+
+    section Smart Features & Documentation
+    Barcode Gen & Scanner (Pending)     :c1, 02-19, 02-24
+    PDF Berita Acara (Pending)          :c2, 02-23, 02-25
+
+    section DevOps & Quality Assurance
+    Final Testing & Fixing Bug (Pending):d1, 02-25, 02-26
+    Deploy & Automation (Pending)       :d2, 02-26, 02-27`} />
+
+## Ringkasan Kegiatan
+
+| Section             | Kegiatan                   | Mulai  | Selesai | Status      |
+| ------------------- | -------------------------- | ------ | ------- | ----------- |
+| System Architecture | Analysis & Diagram flow    | 09 Feb | 10 Feb  | ✅ On Going |
+| System Architecture | Backend API CRUD           | 10 Feb | 18 Feb  | ⏳ Pending  |
+| UI & Experience     | Frontend UI & UX           | 18 Feb | 27 Feb  | ⏳ Pending  |
+| Smart Features      | Barcode Gen & Scanner      | 19 Feb | 24 Feb  | ⏳ Pending  |
+| Smart Features      | PDF Berita Acara           | 23 Feb | 25 Feb  | ⏳ Pending  |
+| DevOps & QA         | Final Testing & Fixing Bug | 25 Feb | 26 Feb  | ⏳ Pending  |
+| DevOps & QA         | Deploy & Automation        | 26 Feb | 27 Feb  | ⏳ Pending  |
