@@ -243,8 +243,8 @@ export function DataTable({
   });
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
+    <div>
+      <div className="mb-2 w-full flex justify-between gap-4">
         <TabsLine
           tabs={[
             { value: "all", label: "Semua" },
@@ -256,7 +256,7 @@ export function DataTable({
           activeTab={activeAction}
           onTabChange={setActiveAction}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
           <ButtonGroup>
             <Input
               placeholder="Cari aksi / entitas / keterangan..."
@@ -309,8 +309,8 @@ export function DataTable({
           />
         </div>
       ) : (
-        <div className="relative flex flex-col gap-4 overflow-auto">
-          <div className="overflow-hidden rounded-lg border">
+        <div className="relative flex flex-col gap-4 min-w-0">
+          <div className="overflow-x-auto rounded-lg border">
             <Table>
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (

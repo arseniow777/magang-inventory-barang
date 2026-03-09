@@ -93,11 +93,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     url: "/dashboard/pengguna",
                     icon: <IconUsersGroup />,
                   },
-                  {
-                    name: "Audit Log",
-                    url: "/dashboard/audit",
-                    icon: <IconUsersGroup />,
-                  },
                 ]
               : [
                   {
@@ -108,13 +103,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {
                     name: "Berita Acara",
                     url: "/dashboard/berita",
-                    icon: <IconFileIsr />,
+                    icon: <IconFileDescription />,
                   },
                 ]),
           ],
       secondary: isGuest
         ? []
-        : [{ title: "Bantuan", url: "/dashboard/bantuan", icon: <IconHelp /> }],
+        : [
+            ...(isAdmin
+              ? [
+                  {
+                    title: "Audit Log",
+                    url: "/dashboard/audit",
+                    icon: <IconFileIsr />,
+                  },
+                ]
+              : []),
+            { title: "Bantuan", url: "/dashboard/bantuan", icon: <IconHelp /> },
+          ],
     }),
     [userData, isAdmin, isGuest],
   );

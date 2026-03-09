@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { IconArrowLeft, IconHistory, IconUser } from "@tabler/icons-react";
@@ -25,6 +25,8 @@ import {
   statusVariant,
 } from "../components/item-badge-helpers";
 import { cn } from "@/lib/utils";
+import EditUnitDialog from "../components/EditUnitDialog";
+import { IconDownload } from "@tabler/icons-react";
 
 export default function ItemUnitPage() {
   const { itemId, unitId } = useParams<{ itemId: string; unitId: string }>();
@@ -34,12 +36,14 @@ export default function ItemUnitPage() {
   const navigate = useNavigate();
   const { data: authUser } = useAuthUser();
   const isPic = authUser?.role === Role.pic;
+  const isAdmin = authUser?.role === Role.admin;
 
   const { data: item } = useItemDetail(numericItemId);
   const { data: locationHistory = [], isError: logsError } =
     useUnitLocationHistory(numericUnitId);
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const photos = item?.photos ?? [];
   const activePhoto = selectedPhoto ?? photos[0]?.file_path ?? null;
@@ -52,13 +56,34 @@ export default function ItemUnitPage() {
       ? `${window.location.origin}/dashboard/barang/${numericItemId}/${numericUnitId}`
       : "";
 
+  const qrRef = useRef<SVGSVGElement>(null);
+
+  const handleDownloadQR = () => {
+    const svg = qrRef.current;
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      ctx?.drawImage(img, 0, 0, 200, 200);
+      const a = document.createElement("a");
+      a.download = `${unit?.unit_code ?? "qr"}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
+  };
+
   return (
     <section className="space-y-10 w-full max-w-5xl md:mx-auto">
-      {/* Back button */}
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-2 text-muted-foreground mb-5 "
+        className="-ml-2 text-muted-foreground mb-5"
         onClick={() => navigate(`/dashboard/barang/${numericItemId}`)}
       >
         <IconArrowLeft className="h-4 w-4 mr-1" />
@@ -68,7 +93,6 @@ export default function ItemUnitPage() {
       <div className="flex flex-col md:grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* ── Left: Photo Gallery ── */}
         <div className="space-y-4">
-          {/* Main photo */}
           <div className="rounded-sm overflow-hidden bg-muted aspect-square">
             {imageUrl ? (
               <img
@@ -83,7 +107,6 @@ export default function ItemUnitPage() {
             )}
           </div>
 
-          {/* Thumbnails */}
           <div className="grid grid-cols-3 gap-4 items-end">
             {photos.slice(0, 3).map((photo) => {
               const isActive =
@@ -112,17 +135,45 @@ export default function ItemUnitPage() {
 
         {/* ── Right: Info Panel ── */}
         <div className="space-y-4 w-auto md:h-full flex flex-col justify-between">
-          {/* Header */}
           <div className="flex flex-col space-y-4">
-            <p className="text-sm uppercase tracking-widest text-muted-foreground">
-              {item?.category ?? "—"}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                {item?.category ?? "—"}
+              </p>
+              {isAdmin && unit && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground -mr-2"
+                    onClick={() => setEditOpen(true)}
+                  >
+                    Edit
+                  </Button>
+                  <EditUnitDialog
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    unit={unit}
+                    itemId={numericItemId!}
+                  />
+                </>
+              )}
+            </div>
             <div className="flex items-start justify-between gap-4">
               <h1 className="text-3xl leading-tight">{item?.name ?? "—"}</h1>
               {qrValue && (
                 <div className="flex flex-col items-center shrink-0">
-                  <div className="rounded-sm border p-2 bg-white flex items-center justify-center">
-                    <QRCodeSVG value={qrValue} size={80} />
+                  <div
+                    className="relative rounded-sm border p-2 bg-white flex items-center justify-center cursor-pointer group"
+                    onClick={handleDownloadQR}
+                  >
+                    <QRCodeSVG ref={qrRef} value={qrValue} size={80} />
+                    <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-sm flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <IconDownload className="h-4 w-4 text-gray-700 dark:text-gray-200" />
+                      <span className="text-[10px] font-medium text-gray-700 dark:text-gray-200">
+                        Unduh
+                      </span>
+                    </div>
                   </div>
                   <p className="text-[10px] text-muted-foreground font-mono mt-1 text-center">
                     {unit?.unit_code ?? ""}
@@ -133,7 +184,6 @@ export default function ItemUnitPage() {
           </div>
 
           <div className="flex-1">
-            {/* Badges */}
             <Separator />
             <div className="flex justify-between items-center py-3 text-sm">
               <span className="text-muted-foreground">Kondisi</span>
@@ -159,7 +209,6 @@ export default function ItemUnitPage() {
 
             <Separator />
 
-            {/* Detail rows */}
             <div>
               <div className="flex justify-between py-3 text-sm">
                 <span className="text-muted-foreground">Kode Unit</span>
@@ -192,7 +241,6 @@ export default function ItemUnitPage() {
               </div>
             </div>
 
-            {/* Add to cart — PIC only */}
             {isPic && unit?.status === "available" && (
               <div className="mt-3">
                 <UnitCartButton
@@ -207,7 +255,7 @@ export default function ItemUnitPage() {
         </div>
       </div>
 
-      {/* ── Bottom: Audit log table ── */}
+      {/* ── Bottom: Location history table ── */}
       <div className="bg-accent dark:bg-accent/40 rounded-lg p-4">
         <div className="space-y-3">
           <div className="flex items-center gap-2">

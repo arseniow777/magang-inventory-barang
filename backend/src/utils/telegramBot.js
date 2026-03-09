@@ -9,10 +9,9 @@ const bot = process.env.TELEGRAM_BOT_TOKEN
   : null;
 
 const API_URL = process.env.API_URL || "http://localhost:5000";
-const FRONTEND_URL = process.env.WEB_URL || "http://localhost:5173";
 
-const awaitingPassword = new Map(); // telegram_id -> true
-const awaitingReply = new Map(); // admin_telegram_id -> target_user_id
+const awaitingPassword = new Map();
+const awaitingReply = new Map();
 
 const getMenu = () => ({
   inline_keyboard: [
@@ -24,6 +23,7 @@ const getMenu = () => ({
     [{ text: "Return Barang", callback_data: "menu_return" }],
     [{ text: "Ganti Password", callback_data: "menu_reset_password" }],
     [{ text: "Hubungi Admin", callback_data: "menu_contact_admin" }],
+    [{ text: "Kunjungi Website", callback_data: "menu_website" }],
     [{ text: "Disconnect Akun", callback_data: "menu_disconnect" }],
   ],
 });
@@ -370,6 +370,20 @@ if (bot) {
         );
       }
 
+      if (data === "menu_website") {
+        await bot.sendMessage(chatId, "Kunjungi website kami:", {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "Buka Website",
+                  url: "https://inventel.vercel.app/dashboard",
+                },
+              ],
+            ],
+          },
+        });
+      }
       if (data === "menu_disconnect") {
         await bot.sendMessage(
           chatId,
@@ -492,44 +506,6 @@ if (bot) {
       await bot.sendMessage(chatId, "Terjadi kesalahan, coba lagi nanti.");
     }
   });
-
-  // bot.onText(/\/reply (\d+) (.+)/, async (msg, match) => {
-  //   const telegram_id = msg.from.id.toString();
-  //   const target_user_id = parseInt(match[1]);
-  //   const message = match[2];
-
-  //   const admin = await getUserByTelegramId(telegram_id);
-  //   if (!admin || admin.role !== "admin") {
-  //     await bot.sendMessage(
-  //       msg.chat.id,
-  //       "Anda tidak memiliki akses untuk perintah ini.",
-  //     );
-  //     return;
-  //   }
-
-  //   const targetUser = await prisma.users.findUnique({
-  //     where: { id: target_user_id },
-  //   });
-
-  //   if (!targetUser || !targetUser.telegram_id) {
-  //     await bot.sendMessage(
-  //       msg.chat.id,
-  //       "User tidak ditemukan atau belum connect Telegram.",
-  //     );
-  //     return;
-  //   }
-
-  //   await bot.sendMessage(
-  //     targetUser.telegram_id,
-  //     `📩 *Pesan dari Admin:*\n\n${message}`,
-  //     { parse_mode: "Markdown" },
-  //   );
-
-  //   await bot.sendMessage(
-  //     msg.chat.id,
-  //     `✅ Pesan berhasil dikirim ke ${targetUser.name}.`,
-  //   );
-  // });
 
   bot.on("message", async (msg) => {
     if (!msg.text) return;
