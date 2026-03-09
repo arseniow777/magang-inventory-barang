@@ -1,0 +1,39 @@
+---
+title: Dokumentasi Magang Inventory Barang
+description: Dokumentasi teknis untuk backend, frontend, dan kontrak integrasi aplikasi inventory.
+template: splash
+hero:
+  tagline: Satu sumber dokumentasi untuk developer baru dan tim maintenance.
+  actions:
+    - text: Mulai dari Overview
+      link: /overview/tujuanproyek/
+      icon: right-arrow
+    - text: Lihat Stack Proyek
+      link: /overview/techstack/
+      icon: open-book
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+## Ruang Lingkup Dokumentasi
+
+<CardGrid stagger>
+  <Card title="Overview" icon="open-book">
+    Tujuan proyek, arsitektur sistem, tech stack, dan konvensi coding tim.
+  </Card>
+  <Card title="Backend" icon="seti:node">
+    Panduan setup service API, struktur folder, database Prisma, dan standar
+    endpoint.
+  </Card>
+  <Card title="Frontend" icon="seti:react">
+    Panduan setup aplikasi React, arsitektur fitur, state/query management, dan
+    validasi form.
+  </Card>
+  <Card title="Integrasi" icon="network">
+    Kontrak request/response, format error API, serta mapping role dan izin
+    akses.
+  </Card>
+  <Card title="Reference" icon="list-unordered">
+    Glosarium istilah teknis dan changelog update dokumentasi.
+  </Card>
+</CardGrid>

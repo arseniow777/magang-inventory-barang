@@ -1,0 +1,258 @@
+---
+interface Props {
+  diagram: string;
+}
+
+const { diagram } = Astro.props;
+
+const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div class="mermaid-wrapper">
+  <div class="mermaid-toolbar">
+    <button class="mermaid-btn" data-action="zoom-in" title="Zoom in">+</button>
+    <button class="mermaid-btn" data-action="zoom-out" title="Zoom out">−</button>
+    <button class="mermaid-btn" data-action="reset" title="Reset">↺</button>
+  </div>
+  <div data-diagram={diagram} id={id} class="mermaid-container">
+    <p class="mermaid-loading">Memuat diagram...</p>
+  </div>
+</div>
+
+<script>
+  import mermaid from "mermaid";
+
+  async function renderDiagrams() {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: document.documentElement.dataset.theme === "dark" ? "dark" : "default",
+      securityLevel: "loose",
+    });
+
+    const containers = document.querySelectorAll<HTMLElement>("[data-diagram]");
+
+    for (const container of containers) {
+      const raw = container.dataset.diagram;
+      if (!raw) continue;
+
+      const id = container.id || `mermaid-${Math.random().toString(36).slice(2, 9)}`;
+
+      try {
+        const { svg } = await mermaid.render(id + "-svg", raw);
+        container.innerHTML = svg;
+
+        const svgEl = container.querySelector<SVGSVGElement>("svg");
+        if (svgEl) {
+          // Remove fixed dimensions so SVG fills the container
+          svgEl.removeAttribute("width");
+          svgEl.removeAttribute("height");
+          svgEl.style.touchAction = "none";
+          setupInteraction(container, svgEl);
+        }
+      } catch (e) {
+        container.innerHTML = `<pre style="color:red">Gagal render diagram:\n${(e as Error).message}</pre>`;
+      }
+    }
+  }
+
+  function setupInteraction(container: HTMLElement, svg: SVGSVGElement) {
+    let scale = 1;
+    let originX = 0;
+    let originY = 0;
+
+    // Panning state
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
+    let lastOriginX = 0;
+    let lastOriginY = 0;
+
+    const SCALE_STEP = 0.15;
+    const MIN_SCALE = 0.2;
+    const MAX_SCALE = 5;
+
+    function applyTransform() {
+      svg.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+    }
+
+    // Zoom buttons wired via closest .mermaid-wrapper
+    const wrapper = container.closest<HTMLElement>(".mermaid-wrapper");
+    if (wrapper) {
+      wrapper.querySelectorAll<HTMLButtonElement>("[data-action]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const action = btn.dataset.action;
+          if (action === "zoom-in") {
+            scale = Math.min(MAX_SCALE, scale + SCALE_STEP);
+          } else if (action === "zoom-out") {
+            scale = Math.max(MIN_SCALE, scale - SCALE_STEP);
+          } else if (action === "reset") {
+            scale = 1;
+            originX = 0;
+            originY = 0;
+          }
+          applyTransform();
+        });
+      });
+    }
+
+    // Scroll-wheel zoom centered on cursor
+    container.addEventListener("wheel", (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left - originX;
+      const mouseY = e.clientY - rect.top - originY;
+      const delta = e.deltaY < 0 ? SCALE_STEP : -SCALE_STEP;
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
+      const ratio = newScale / scale;
+      originX -= mouseX * (ratio - 1);
+      originY -= mouseY * (ratio - 1);
+      scale = newScale;
+      applyTransform();
+    }, { passive: false });
+
+    // Mouse panning
+    svg.addEventListener("mousedown", (e: MouseEvent) => {
+      isPanning = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      lastOriginX = originX;
+      lastOriginY = originY;
+      svg.style.cursor = "grabbing";
+      e.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (e: MouseEvent) => {
+      if (!isPanning) return;
+      originX = lastOriginX + (e.clientX - startX);
+      originY = lastOriginY + (e.clientY - startY);
+      applyTransform();
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!isPanning) return;
+      isPanning = false;
+      svg.style.cursor = "grab";
+    });
+
+    // Touch panning & pinch-zoom
+    let lastTouchDist = 0;
+    let lastTouchMidX = 0;
+    let lastTouchMidY = 0;
+
+    svg.addEventListener("touchstart", (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        isPanning = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        lastOriginX = originX;
+        lastOriginY = originY;
+      } else if (e.touches.length === 2) {
+        isPanning = false;
+        lastTouchDist = Math.hypot(
+          e.touches[1].clientX - e.touches[0].clientX,
+          e.touches[1].clientY - e.touches[0].clientY
+        );
+        lastTouchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        lastTouchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    svg.addEventListener("touchmove", (e: TouchEvent) => {
+      if (e.touches.length === 1 && isPanning) {
+        originX = lastOriginX + (e.touches[0].clientX - startX);
+        originY = lastOriginY + (e.touches[0].clientY - startY);
+        applyTransform();
+      } else if (e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[1].clientX - e.touches[0].clientX,
+          e.touches[1].clientY - e.touches[0].clientY
+        );
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = container.getBoundingClientRect();
+        const localMidX = midX - rect.left - originX;
+        const localMidY = midY - rect.top - originY;
+
+        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * (dist / lastTouchDist)));
+        const ratio = newScale / scale;
+        originX -= localMidX * (ratio - 1);
+        originY -= localMidY * (ratio - 1);
+        originX += midX - lastTouchMidX;
+        originY += midY - lastTouchMidY;
+        scale = newScale;
+        lastTouchDist = dist;
+        lastTouchMidX = midX;
+        lastTouchMidY = midY;
+        applyTransform();
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    svg.addEventListener("touchend", () => { isPanning = false; });
+
+    svg.style.cursor = "grab";
+    svg.style.transformOrigin = "0 0";
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderDiagrams);
+  } else {
+    renderDiagrams();
+  }
+</script>
+
+<style>
+  .mermaid-wrapper {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .mermaid-toolbar {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--sl-color-gray-6);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+  }
+
+  .mermaid-btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.3rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .mermaid-btn:hover {
+    background: var(--sl-color-gray-5);
+  }
+
+  .mermaid-container {
+    overflow: hidden;
+    padding: 1.5rem;
+    min-height: 200px;
+    position: relative;
+  }
+
+  .mermaid-loading {
+    color: var(--sl-color-gray-3);
+    font-style: italic;
+  }
+
+  .mermaid-container svg {
+    display: block;
+    will-change: transform;
+    transform-origin: 0 0;
+    user-select: none;
+  }
+</style>

@@ -1,0 +1,264 @@
+---
+title: Entity Relationship Diagram
+description: Diagram relasi antar tabel database inventory.
+---
+
+import MermaidDiagram from "@/components/MermaidDiagram.astro";
+
+## Gambaran Umum
+
+Diagram di bawah menunjukkan seluruh entitas dan relasi dalam database aplikasi inventory.
+
+## Diagram ERD
+
+<MermaidDiagram
+  diagram={`erDiagram
+    Users {
+        Int id PK
+        String employee_id UK
+        String username UK
+        String name
+        Role role
+        String phone_number
+        String password_hash
+        Boolean is_active
+        String telegram_id
+        DateTime created_at
+    }
+    ItemMasters {
+        Int id PK
+        String name
+        String model_code UK
+        String category
+        Int procurement_year
+        DateTime created_at
+        Int pic_id FK
+    }
+    ItemUnits {
+        Int id PK
+        String unit_code UK
+        ItemCondition condition
+        ItemStatus status
+        Int item_id FK
+        Int location_id FK
+    }
+    ItemPhotos {
+        Int id PK
+        String file_path
+        DateTime uploaded_at
+        Int item_id FK
+    }
+    Locations {
+        Int id PK
+        String location_code UK
+        String building_name
+        Int floor
+        String address
+    }
+    Requests {
+        Int id PK
+        String request_code UK
+        ReportType request_type
+        String reason
+        RequestStatus status
+        DateTime approved_at
+        DateTime created_at
+        Int destination_location_id FK
+        Int return_location_id FK
+        Int returned_by_id FK
+        Int pic_id FK
+        Int admin_id FK
+        DateTime returned_at
+    }
+    RequestItems {
+        Int id PK
+        Int request_id FK
+        Int unit_id FK
+    }
+    OfficialReports {
+        Int id PK
+        String report_number UK
+        ReportType report_type
+        DateTime issued_date
+        String file_path
+        DateTime created_at
+        Boolean is_approved
+        Int approved_by_id FK
+        DateTime approved_at
+        Int request_id FK
+        Int issued_by_id FK
+    }
+    ItemLogHistory {
+        Int id PK
+        DateTime moved_at
+        Int unit_id FK
+        Int from_location_id FK
+        Int to_location_id FK
+        Int request_id FK
+        Int moved_by_id FK
+    }
+    Notifications {
+        Int id PK
+        String message
+        NotificationType type
+        DateTime created_at
+        Int user_id FK
+    }
+    PasswordResets {
+        Int id PK
+        PasswordResetStatus status
+        String new_password_hash
+        DateTime created_at
+        DateTime approved_at
+        Int user_id FK
+        Int admin_id FK
+    }
+    AuditLogs {
+        Int id PK
+        Int actor_id FK
+        Role actor_role
+        AuditAction action
+        String entity_type
+        Int entity_id
+        String description
+        String user_agent
+        DateTime created_at
+    }
+    Users ||--o{ ItemMasters : "pic"
+    Users ||--o{ Requests : "pic/admin/returner"
+    Users ||--o{ OfficialReports : "issuer/approver"
+    Users ||--o{ Notifications : "user"
+    Users ||--o{ PasswordResets : "user/admin"
+    Users ||--o{ ItemLogHistory : "moved_by"
+    Users ||--o{ AuditLogs : "actor"
+    ItemMasters ||--o{ ItemUnits : "units"
+    ItemMasters ||--o{ ItemPhotos : "photos"
+    Locations ||--o{ ItemUnits : "location"
+    Locations ||--o{ Requests : "destination/return"
+    Locations ||--o{ ItemLogHistory : "from/to"
+    ItemUnits ||--o{ RequestItems : "request_items"
+    ItemUnits ||--o{ ItemLogHistory : "log_histories"
+    Requests ||--o{ RequestItems : "request_items"
+    Requests ||--|| OfficialReports : "report"
+    Requests ||--o{ ItemLogHistory : "log_histories"`}
+/>
+
+## Entitas Utama
+
+### Users
+
+Menyimpan data user dengan role `admin` atau `pic`.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `employee_id` (Unique)
+- `username` (Unique)
+- `role` (admin, pic)
+- `telegram_id` (Optional)
+
+### ItemMasters
+
+Data induk barang dengan informasi umum.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `model_code` (Unique)
+- `category`
+- `procurement_year`
+- `pic_id` (Foreign Key ke Users)
+
+### ItemUnits
+
+Unit fisik dari item master dengan tracking status dan kondisi.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `unit_code` (Unique)
+- `status` (available, in_transit, borrowed, transferred, sold, demolished)
+- `condition` (good, damaged, broken)
+- `location_id` (Foreign Key)
+
+### Locations
+
+Tempat penyimpanan barang.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `location_code` (Unique)
+- `building_name`
+- `floor`
+
+### Requests
+
+Permintaan perpindahan, peminjaman, atau operasi barang.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `request_code` (Unique)
+- `request_type` (borrow, transfer, sell, demolish)
+- `status` (pending, in_transit, approved, rejected, completed, cancelled)
+
+### OfficialReports
+
+Laporan resmi yang dihasilkan dari request.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `report_number` (Unique)
+- `report_type`
+- `file_path`
+- `is_approved`
+
+### AuditLogs
+
+Jejak aktivitas penting untuk audit trail.
+
+**Fields penting:**
+
+- `id` (Primary Key)
+- `action` (CREATE, UPDATE, DELETE, APPROVE, REJECT, LOGIN, LOGOUT, dll)
+- `entity_type` dan `entity_id` (untuk tracking operasi pada entitas spesifik)
+
+### ItemLogHistory
+
+Riwayat perpindahan unit barang antar lokasi.
+
+**Fields penting:**
+
+- `unit_id` (dari unit mana)
+- `from_location_id` dan `to_location_id` (lokasi asal dan tujuan)
+- `moved_by_id` (user yang melakukan)
+- `moved_at` (timestamp)
+
+### Notifications
+
+Pemberitahuan ke user atas aktivitas sistem.
+
+**Fields penting:**
+
+- `type` (request, report, password, system)
+- `user_id` (user penerima notifikasi)
+
+### PasswordResets
+
+Approval untuk perubahan password.
+
+**Fields penting:**
+
+- `status` (pending, approved, rejected)
+- `user_id` (user yang minta reset)
+- `admin_id` (admin yang approve/reject)
+
+## Praktik Migration
+
+Saat ada perubahan skema:
+
+1. Update file `prisma/schema.prisma`.
+2. Jalankan `prisma migrate dev --name <nama_perubahan>`.
+3. File migration akan terbuat otomatis di folder `prisma/migrations/`.
