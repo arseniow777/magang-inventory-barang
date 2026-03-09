@@ -19,10 +19,30 @@ const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
   </div>
 </div>
 
+<script is:inline>
+  // Inject CDN script once, avoiding Vite bundling of Mermaid's internal dynamic imports
+  if (!document.getElementById("mermaid-cdn-script")) {
+    const s = document.createElement("script");
+    s.id = "mermaid-cdn-script";
+    s.src = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+    document.head.appendChild(s);
+  }
+</script>
+
 <script>
-  import mermaid from "mermaid";
+  function waitForMermaid(): Promise<any> {
+    return new Promise((resolve) => {
+      const check = () => {
+        if ((window as any).mermaid) resolve((window as any).mermaid);
+        else setTimeout(check, 50);
+      };
+      check();
+    });
+  }
 
   async function renderDiagrams() {
+    const mermaid = await waitForMermaid();
+
     mermaid.initialize({
       startOnLoad: false,
       theme: document.documentElement.dataset.theme === "dark" ? "dark" : "default",
@@ -218,20 +238,18 @@ const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
   }
 
   .mermaid-btn {
-    width: 2rem;
-    height: 2rem;
-    font-size: 1.1rem;
-    line-height: 1;
-    border: 1px solid var(--sl-color-gray-4);
-    border-radius: 0.3rem;
-    background: var(--sl-color-bg);
-    color: var(--sl-color-text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s;
-  }
+  width: 2rem;
+  height: 2rem;
+
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+}
 
   .mermaid-btn:hover {
     background: var(--sl-color-gray-5);
