@@ -1,0 +1,183 @@
+---
+title: Flowchart Alur Sistem
+description: Diagram alur proses utama aplikasi inventory — login, bot Telegram, barcode, dan operasi barang.
+---
+
+import MermaidDiagram from "@/components/MermaidDiagram.astro";
+
+## 1. Login dan Logout
+
+<MermaidDiagram diagram={`flowchart TD
+    A([User buka halaman Login]) --> B[Input username & password]
+    B --> C[POST /api/v1/auth/login]
+    C --> D{Rate limit\n10x / 15 menit?}
+    D -- Terlampaui --> E[/429 Too Many Requests/]
+    D -- OK --> F{User ditemukan\n& is_active?}
+    F -- Tidak --> G[/401 Akun tidak ditemukan\natau tidak aktif/]
+    F -- Ya --> H{bcrypt compare\npassword}
+    H -- Tidak cocok --> I[/401 Password salah/]
+    H -- Cocok --> J[Generate JWT token\nexpiresIn: 7d]
+    J --> K[(AuditLog LOGIN\nentity: Users)]
+    K --> L[Response: token + user data]
+    L --> M[Frontend simpan token\ndi AuthContext]
+    M --> N([Redirect ke Dashboard])
+
+    N --> O{User klik Logout}
+    O --> P[POST /api/v1/auth/logout\nBearer token]
+    P --> Q{JWT valid?}
+    Q -- Tidak --> R[/401 Unauthorized/]
+    Q -- Cocok --> S[(AuditLog LOGOUT\nentity: Users)]
+    S --> T[Response: Logout berhasil]
+    T --> U[Frontend hapus token\nfrom context]
+    U --> V([Redirect ke Login])
+
+    style K fill:#f0a500,color:#000
+    style S fill:#f0a500,color:#000
+    style E fill:#e74c3c,color:#fff
+    style G fill:#e74c3c,color:#fff
+    style I fill:#e74c3c,color:#fff
+    style R fill:#e74c3c,color:#fff`} />
+
+---
+
+## 2. Bot Telegram
+
+<MermaidDiagram diagram={`flowchart TD
+    A([User login ke Web]) --> B[Buka halaman Profil]
+    B --> C[Klik Generate Link Telegram]
+    C --> D[POST /api/v1/users/telegram/generate-link]
+    D --> E[Backend buat deep link\nbase64 encode user_id]
+    E --> F[User klik link → buka Telegram]
+
+    F --> G[Bot terima /start?link:USER_ID]
+    G --> H{telegram_id\nsudah dipakai akun lain?}
+    H -- Ya --> I[/Bot: Telegram sudah\nterhubung akun lain/]
+    H -- Tidak --> J[Update Users.telegram_id]
+    J --> K[Bot kirim pesan:\nAkun berhasil terhubung + Menu]
+
+    K --> L{User pilih menu}
+    L --> M1[Profil Saya\nGET /bot/user/:telegram_id]
+    L --> M2[Request Terakhir\nGET /bot/requests/:telegram_id]
+    L --> M3[Berita Acara Terakhir\nGET /bot/reports/:telegram_id]
+    L --> M4[Ganti Password\nFormat: username#124;passwordbaru]
+    L --> M5[Hubungi Admin\nPOST /bot/contact-admin]
+    L --> M6[Disconnect Akun\nPOST /users/telegram/disconnect]
+
+    M4 --> N{User & password valid?}
+    N -- Tidak --> O[/Bot: Username tidak ditemukan/]
+    N -- Ya --> P[Buat PasswordReset\nstatus: pending]
+    P --> Q[Notifikasi ke semua Admin]
+
+    M3 --> R{Report approved\nditemukan?}
+    R -- Ya --> S[GET /bot/reports/:id/download]
+    S --> T[Bot kirim file PDF]
+
+    style J fill:#27ae60,color:#fff
+    style P fill:#f0a500,color:#000
+    style I fill:#e74c3c,color:#fff
+    style O fill:#e74c3c,color:#fff`} />
+
+---
+
+## 3. Barcode Scan Unit Barang
+
+<MermaidDiagram diagram={`flowchart TD
+    A([User buka fitur Scan / Detail Barang]) --> B{Pilih metode}
+    B --> B1[Scan kamera barcode]
+    B --> B2[Input manual unit_code]
+
+    B1 --> C[Decode barcode → unit_code]
+    B2 --> C
+
+    C --> D[GET /api/v1/item-units/code/:unit_code]
+    D --> E{Unit ditemukan?}
+    E -- Tidak --> F[/404 Unit tidak ditemukan/]
+    E -- Ya --> G[Tampilkan detail unit:\nKode, Status, Kondisi, Lokasi]
+
+    G --> H[GET /api/v1/item-units/:id/history]
+    H --> I[Tampilkan riwayat\nperpindahan unit]
+
+    G --> J{Admin?}
+    J -- Ya --> K{Aksi pada unit}
+    K --> K1[Update kondisi/status\nPUT /item-units/:id]
+    K --> K2[Lihat request aktif\nterkait unit]
+
+    K1 --> L[(AuditLog UPDATE\nentity: ItemUnits)]
+    K1 --> M[Response: data unit terbaru]
+
+    style L fill:#f0a500,color:#000
+    style F fill:#e74c3c,color:#fff`} />
+
+---
+
+## 4. Alur Operasi Barang (Request)
+
+<MermaidDiagram diagram={`flowchart TD
+    A([PIC/Admin buat Request]) --> B[Pilih tipe:\nborrow / transfer / sell / demolish]
+    B --> C[Pilih unit barang\n& lokasi tujuan jika perlu]
+    C --> D[POST /api/v1/requests]
+    D --> E{Validasi:\nUnit available?\nTidak ada request aktif?\nLokasi tujuan valid?}
+    E -- Gagal --> F[/400 / 404 Error validasi/]
+    E -- OK --> G[Buat Requests + RequestItems\nGenerate request_code]
+    G --> H[(AuditLog CREATE\nentity: Requests)]
+    H --> I[Notifikasi ke semua Admin\nvia Notifications table]
+    I --> J{Admin punya telegram?}
+    J -- Ya --> K[Kirim Telegram ke Admin]
+    J -- Tidak --> L
+
+    K --> L([Admin lihat daftar\nPending Requests])
+
+    L --> M{Admin ambil keputusan}
+
+    M --> N1[PUT /requests/:id/approve]
+    M --> N2[PUT /requests/:id/reject]
+    M --> N3[PUT /requests/:id/cancel\noleh PIC]
+
+    N2 --> O[(AuditLog REJECT\nentity: Requests)]
+    O --> O1[Unit status kembali available]
+    O1 --> P1([Request: rejected])
+
+    N3 --> O3[(AuditLog CANCEL)]
+    O3 --> P3([Request: cancelled])
+
+    N1 --> Q{Tipe request?}
+
+    Q -- sell / demolish --> R[Unit status: sold / demolished\nRequest: completed]
+    R --> R1[Generate PDF Berita Acara\nOfficialReports dibuat & approved]
+    R1 --> R2[(AuditLog APPROVE\nentity: Requests)]
+    R2 --> R3[Notifikasi ke PIC]
+    R3 --> P4([Selesai])
+
+    Q -- borrow / transfer --> S[Unit status: in_transit\nRequest: in_transit]
+    S --> S1[(AuditLog APPROVE\nentity: Requests)]
+    S1 --> S2[Notifikasi ke PIC]
+    S2 --> T([Admin tunggu konfirmasi tiba])
+
+    T --> U[PUT /requests/:id/confirm-arrival]
+    U --> V[Unit pindah ke lokasi tujuan\nRequest: approved]
+    V --> V1[ItemLogHistory dibuat\nper unit]
+    V1 --> V2[Generate PDF Berita Acara\nOfficialReports dibuat]
+    V2 --> V3[(AuditLog APPROVE\nentity: Requests)]
+    V3 --> W{Tipe: borrow?}
+
+    W -- transfer --> X([Selesai — unit di lokasi baru])
+
+    W -- borrow --> Y([Admin tunggu pengembalian])
+    Y --> Z[PUT /requests/:id/return]
+    Z --> Z1[Unit kembali ke return_location\nRequest: completed]
+    Z1 --> Z2[ItemLogHistory dibuat]
+    Z2 --> Z3[(AuditLog APPROVE\nentity: Requests)]
+    Z3 --> AA([Selesai — unit dikembalikan])
+
+    style H fill:#f0a500,color:#000
+    style O fill:#f0a500,color:#000
+    style O3 fill:#f0a500,color:#000
+    style R2 fill:#f0a500,color:#000
+    style S1 fill:#f0a500,color:#000
+    style V1 fill:#27ae60,color:#fff
+    style V3 fill:#f0a500,color:#000
+    style Z2 fill:#27ae60,color:#fff
+    style Z3 fill:#f0a500,color:#000
+    style F fill:#e74c3c,color:#fff
+    style P1 fill:#e74c3c,color:#fff
+    style P3 fill:#95a5a6,color:#fff`} />
