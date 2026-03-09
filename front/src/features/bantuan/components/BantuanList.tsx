@@ -12,16 +12,11 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { TabsLine } from "@/components/tabs";
 import { Button } from "@/components/ui/button";
 import { IconMessage2 } from "@tabler/icons-react";
-import { toast } from "sonner";
-
-import { useContactAdmin } from "../hooks/useContactAdmin";
 
 const faqData = [
   {
@@ -175,27 +170,11 @@ const tabs = [
 export default function BantuanList() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const { mutate, isPending } = useContactAdmin();
 
   const filtered = useMemo(() => {
     if (activeCategory === "all") return faqData;
     return faqData.filter((f) => f.category === activeCategory);
   }, [activeCategory]);
-
-  const handleSend = () => {
-    if (!message.trim()) return;
-    mutate(message, {
-      onSuccess: () => {
-        setOpen(false);
-        setMessage("");
-        toast.success("Pesan berhasil dikirim ke admin");
-      },
-      onError: () => {
-        toast.error("Gagal mengirim pesan, coba lagi");
-      },
-    });
-  };
 
   return (
     <div className="flex flex-col gap-4">

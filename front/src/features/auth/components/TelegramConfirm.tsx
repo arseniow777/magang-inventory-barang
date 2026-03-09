@@ -233,7 +233,6 @@ export function TelegramConfirm({
   const { data: user, isLoading, refetch } = useAuth();
   const { mutate: logout } = useLogout();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [telegramLink, setTelegramLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -272,12 +271,6 @@ export function TelegramConfirm({
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleCheckConnection = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
   };
 
   const handleCopyLink = async () => {
