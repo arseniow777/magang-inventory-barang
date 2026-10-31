@@ -12,7 +12,7 @@ export function RootRedirect() {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <>
-          <Spinner />
+          <Spinner className="size-48" />
           <span className="text-lg">Memuat...</span>
         </>
       </div>
