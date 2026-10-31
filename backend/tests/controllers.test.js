@@ -117,13 +117,9 @@ test("getItems applies search across item name, model code, and category", async
       ],
     ],
     async () => {
-      await getItems(
-        { query: { search: "laptop" } },
-        res,
-        (error) => {
-          throw error;
-        },
-      );
+      await getItems({ query: { search: "laptop" } }, res, (error) => {
+        throw error;
+      });
     },
   );
 
