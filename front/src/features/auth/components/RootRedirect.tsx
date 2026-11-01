@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { ROUTES } from "@/constants/routes";
-import { Spinner } from "@/components/ui/spinner";
+import { Bars } from "@/components/loading-ui/bars";
 
 export function RootRedirect() {
   const { data: user, isLoading } = useAuth();
@@ -11,10 +11,7 @@ export function RootRedirect() {
   if (isLoading && token) {
     return (
       <div className="flex min-h-svh items-center justify-center">
-        <>
-          <Spinner className="size-24" />
-          <span className="text-lg">Memuat...</span>
-        </>
+        <Bars className="h-12 w-16"></Bars>
       </div>
     );
   }
